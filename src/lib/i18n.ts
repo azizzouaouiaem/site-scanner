@@ -23,7 +23,7 @@ export const translations = {
     submitting: 'Scanning… this can take up to a minute',
     disclaimer: "We'll only use your email to send the report. See our list collection notice below.",
     collectionNotice:
-      'Submitted URLs and email addresses are stored so we can follow up and improve this tool.',
+      'Submitted URLs and technical scan metadata are stored to improve this tool and understand usage.',
     resultsTitle: 'Scan complete',
     resultsSubtitle: () => 'Your scan results are ready below.',
     viewHtmlReport: 'View detailed HTML report',
@@ -74,7 +74,7 @@ export const translations = {
     submitting: 'Analyse en cours… jusqu\u2019à une minute',
     disclaimer: "Votre courriel sert uniquement à l'envoi du rapport. Voir la mention de collecte ci-dessous.",
     collectionNotice:
-      "Les URLs et courriels soumis sont conservés afin d'assurer un suivi et d'améliorer cet outil.",
+      "Les URLs et métadonnées techniques des analyses sont conservées afin d'améliorer cet outil et d'en comprendre l'utilisation.",
     resultsTitle: 'Analyse terminée',
     resultsSubtitle: () => 'Les résultats de votre analyse sont prêts ci-dessous.',
     viewHtmlReport: 'Voir le rapport HTML détaillé',
