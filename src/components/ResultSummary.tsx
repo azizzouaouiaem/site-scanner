@@ -106,7 +106,7 @@ export default function ResultSummary({
           {formatMinutes(summary.totals.automatedMinutes)}
         </div>
         <a
-          href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? 'contact@example.com'}`}
+          href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? 'aziz.zouaoui.aem@gmail.com'}`}
           className="mt-5 inline-block rounded-full bg-[var(--accent)] px-6 py-3 text-xs font-extrabold uppercase tracking-widest text-white transition hover:brightness-110"
         >
           {strings.contactCta}

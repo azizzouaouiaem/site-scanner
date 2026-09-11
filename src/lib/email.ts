@@ -107,7 +107,7 @@ export async function sendReportEmail(params: {
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.RESEND_FROM_EMAIL;
-  const contactEmail = process.env.CONTACT_EMAIL ?? 'contact@example.com';
+  const contactEmail = process.env.CONTACT_EMAIL ?? 'aziz.zouaoui.aem@gmail.com';
   const contactUrl = process.env.CONTACT_URL ?? 'https://example.com/contact';
 
   if (!apiKey || !fromEmail) {
