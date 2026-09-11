@@ -1,0 +1,106 @@
+import type { Language } from './types';
+
+export const translations = {
+  en: {
+    siteName: {
+      accessibility: 'Accessibility Reviewer',
+      seo: 'SEO Reviewer',
+      performance: 'Performance Reviewer',
+    },
+    heroTitle: 'Scan any page for accessibility, SEO or performance issues',
+    heroSubtitle:
+      'Enter a URL, pick what to audit, and get a full report delivered straight to your inbox.',
+    urlLabel: 'Page URL',
+    urlPlaceholder: 'https://example.com',
+    emailLabel: 'Your email',
+    emailPlaceholder: 'you@example.com',
+    languageLabel: 'Report language',
+    scanTypeLabel: 'What do you want to audit?',
+    scanTypeAccessibility: 'Accessibility',
+    scanTypeSeo: 'SEO',
+    scanTypePerformance: 'Performance',
+    submit: 'Scan this page',
+    submitting: 'Scanning… this can take up to a minute',
+    disclaimer: "We'll only use your email to send the report. See our list collection notice below.",
+    collectionNotice:
+      'Submitted URLs and email addresses are stored so we can follow up and improve this tool.',
+    resultsTitle: 'Scan complete',
+    resultsSubtitle: (email: string) => `The detailed report was sent to ${email}.`,
+    scoreLabel: {
+      accessibility: 'Accessibility score',
+      seo: 'SEO score',
+      performance: 'Performance score',
+    },
+    totalIssuesLabel: 'Issues found',
+    manualTimeLabel: 'Estimated manual dev time',
+    automatedTimeLabel: 'We could fix this for you in',
+    contactCta: 'Contact us',
+    topIssuesTitle: 'Top issues',
+    businessImpactsTitle: 'Top business impacts',
+    errorGeneric: 'Something went wrong. Please try again.',
+    errorInvalidUrl: 'Please enter a valid, public http(s) URL.',
+    errorBlockedUrl: "This URL can't be scanned (private/internal address).",
+    errorRateLimited: 'Too many scans from this email recently. Please try again later.',
+    errorTimeout: 'The page took too long to load. Please try again.',
+    impact: {
+      critical: 'Critical',
+      serious: 'Serious',
+      moderate: 'Moderate',
+      minor: 'Minor',
+    },
+    occurrences: (n: number) => (n === 1 ? '1 occurrence' : `${n} occurrences`),
+  },
+  fr: {
+    siteName: {
+      accessibility: 'Accessibility Reviewer',
+      seo: 'SEO Reviewer',
+      performance: 'Performance Reviewer',
+    },
+    heroTitle: "Analysez n'importe quelle page pour l'accessibilité, le SEO ou la performance",
+    heroSubtitle:
+      "Entrez une URL, choisissez le type d'analyse, et recevez un rapport complet directement dans votre courriel.",
+    urlLabel: 'URL de la page',
+    urlPlaceholder: 'https://exemple.com',
+    emailLabel: 'Votre courriel',
+    emailPlaceholder: 'vous@exemple.com',
+    languageLabel: 'Langue du rapport',
+    scanTypeLabel: 'Que voulez-vous analyser ?',
+    scanTypeAccessibility: 'Accessibilité',
+    scanTypeSeo: 'SEO',
+    scanTypePerformance: 'Performance',
+    submit: 'Analyser cette page',
+    submitting: 'Analyse en cours… jusqu\u2019à une minute',
+    disclaimer: "Votre courriel sert uniquement à l'envoi du rapport. Voir la mention de collecte ci-dessous.",
+    collectionNotice:
+      "Les URLs et courriels soumis sont conservés afin d'assurer un suivi et d'améliorer cet outil.",
+    resultsTitle: 'Analyse terminée',
+    resultsSubtitle: (email: string) => `Le rapport détaillé a été envoyé à ${email}.`,
+    scoreLabel: {
+      accessibility: "Score d'accessibilité",
+      seo: 'Score SEO',
+      performance: 'Score de performance',
+    },
+    totalIssuesLabel: 'Problèmes détectés',
+    manualTimeLabel: 'Temps de développement manuel estimé',
+    automatedTimeLabel: 'Nous pourrions corriger cela pour vous en',
+    contactCta: 'Contactez-nous',
+    topIssuesTitle: 'Principaux problèmes',
+    businessImpactsTitle: 'Principaux impacts business',
+    errorGeneric: 'Une erreur est survenue. Veuillez réessayer.',
+    errorInvalidUrl: 'Veuillez entrer une URL http(s) publique valide.',
+    errorBlockedUrl: "Cette URL ne peut pas être analysée (adresse privée/interne).",
+    errorRateLimited: 'Trop de demandes récentes pour ce courriel. Veuillez réessayer plus tard.',
+    errorTimeout: "La page a pris trop de temps à charger. Veuillez réessayer.",
+    impact: {
+      critical: 'Critique',
+      serious: 'Sérieux',
+      moderate: 'Modéré',
+      minor: 'Mineur',
+    },
+    occurrences: (n: number) => (n === 1 ? '1 occurrence' : `${n} occurrences`),
+  },
+} as const;
+
+export function t(language: Language) {
+  return translations[language];
+}
