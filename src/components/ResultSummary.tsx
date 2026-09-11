@@ -115,9 +115,10 @@ export default function ResultSummary({
         href="/reports/ferrari/ferrari-audit-report.html"
         target="_blank"
         rel="noreferrer"
-        className="mt-6 self-center text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white"
+        className="report-cta mt-6 self-center"
       >
-        {strings.viewHtmlReport}
+        <span className="report-cta__label">{strings.viewHtmlReport}</span>
+        <span aria-hidden="true" className="report-cta__arrow">↗</span>
       </a>
 
       <button
