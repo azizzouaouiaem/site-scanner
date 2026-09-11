@@ -1,22 +1,9 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import axeSource from 'axe-core/axe.min.js';
 import { chromium as playwrightChromium, type Browser } from 'playwright-core';
 import type { RawAxeResult } from './types';
 
-// axe-core ships a pre-bundled UMD build we inject directly into the page —
-// no network fetch from inside the target page's context is needed. Read
-// lazily (not at module load) so this never runs during Next's build-time
-// page-data collection step. Resolved via process.cwd() rather than
-// require.resolve(): Next.js's `serverExternalPackages` handling intercepts
-// `require()` for externals but doesn't resolve `require.resolve()` to a
-// real absolute path, so it must be located on disk directly instead.
-let cachedAxeSource: string | null = null;
 function getAxeSource(): string {
-  if (!cachedAxeSource) {
-    const axePath = path.join(process.cwd(), 'node_modules', 'axe-core', 'axe.min.js');
-    cachedAxeSource = fs.readFileSync(axePath, 'utf8');
-  }
-  return cachedAxeSource;
+  return axeSource;
 }
 
 const NAVIGATION_TIMEOUT_MS = 25_000;
