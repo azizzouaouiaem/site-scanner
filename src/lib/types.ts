@@ -67,6 +67,7 @@ export interface ScanReport {
   passedRuleCount: number;
   issues: ScoredIssue[];
   businessImpacts: BusinessImpact[];
+  screenshotDataUrl?: string;
   totals: {
     manualMinutes: number;
     automatedMinutes: number;

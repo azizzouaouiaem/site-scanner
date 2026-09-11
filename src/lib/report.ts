@@ -12,6 +12,7 @@ function finalizeReport(
   scanType: ScanType,
   issues: ScoredIssue[],
   passedRuleCount: number,
+  screenshotDataUrl?: string,
 ): ScanReport {
   const sorted = [...issues].sort((a, b) => b.manualFixMinutes - a.manualFixMinutes);
   const totals = computeTotals(sorted);
@@ -30,14 +31,15 @@ function finalizeReport(
     passedRuleCount,
     issues: sorted,
     businessImpacts: getTopBusinessImpacts(sorted, language, scanType),
+    screenshotDataUrl,
     totals,
   };
 }
 
 async function buildAccessibilityReport(url: URL, language: Language): Promise<ScanReport> {
-  const { finalUrl, violations, passedRuleCount } = await scanUrlForAccessibility(url);
+  const { finalUrl, violations, passedRuleCount, screenshotDataUrl } = await scanUrlForAccessibility(url);
   const issues = violations.map(scoreAxeResult);
-  return finalizeReport(url, finalUrl, language, 'accessibility', issues, passedRuleCount);
+  return finalizeReport(url, finalUrl, language, 'accessibility', issues, passedRuleCount, screenshotDataUrl);
 }
 
 async function buildSeoReport(url: URL, language: Language): Promise<ScanReport> {
@@ -45,7 +47,7 @@ async function buildSeoReport(url: URL, language: Language): Promise<ScanReport>
   const findings = buildSeoFindings(data);
   const issues = findings.map(scoreFinding);
   const passedRuleCount = Math.max(0, SEO_TOTAL_CHECKS - findings.length);
-  return finalizeReport(url, data.finalUrl, language, 'seo', issues, passedRuleCount);
+  return finalizeReport(url, data.finalUrl, language, 'seo', issues, passedRuleCount, data.screenshotDataUrl);
 }
 
 async function buildPerformanceReport(url: URL, language: Language): Promise<ScanReport> {
@@ -53,7 +55,7 @@ async function buildPerformanceReport(url: URL, language: Language): Promise<Sca
   const findings = buildPerformanceFindings(data);
   const issues = findings.map(scoreFinding);
   const passedRuleCount = Math.max(0, PERFORMANCE_TOTAL_CHECKS - findings.length);
-  return finalizeReport(url, data.finalUrl, language, 'performance', issues, passedRuleCount);
+  return finalizeReport(url, data.finalUrl, language, 'performance', issues, passedRuleCount, data.screenshotDataUrl);
 }
 
 export async function buildScanReport(url: URL, language: Language, scanType: ScanType): Promise<ScanReport> {

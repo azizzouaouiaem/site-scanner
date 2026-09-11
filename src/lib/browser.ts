@@ -41,10 +41,12 @@ export interface ScanBrowserResult {
   pageTitle: string;
   violations: RawAxeResult[];
   passedRuleCount: number;
+  screenshotDataUrl: string;
 }
 
 export interface SeoPageData {
   finalUrl: string;
+  screenshotDataUrl: string;
   title: string;
   metaDescription: string;
   canonical: string;
@@ -62,6 +64,7 @@ export interface SeoPageData {
 
 export interface PerformancePageData {
   finalUrl: string;
+  screenshotDataUrl: string;
   ttfbMs: number | null;
   domContentLoadedMs: number | null;
   loadTimeMs: number | null;
@@ -126,12 +129,14 @@ export async function scanUrlForAccessibility(url: URL): Promise<ScanBrowserResu
     ]);
 
     const results = axeResults as { violations: RawAxeResult[]; passes: unknown[] };
+    const screenshot = await page.screenshot({ type: 'jpeg', quality: 70, fullPage: false });
 
     return {
       finalUrl: page.url(),
       pageTitle: await page.title(),
       violations: results.violations,
       passedRuleCount: results.passes.length,
+      screenshotDataUrl: `data:image/jpeg;base64,${screenshot.toString('base64')}`,
     };
   } finally {
     await browser.close();
@@ -162,7 +167,8 @@ export async function scanUrlForSeo(url: URL): Promise<SeoPageData> {
       };
     });
 
-    return { finalUrl: page.url(), ...data };
+    const screenshot = await page.screenshot({ type: 'jpeg', quality: 70, fullPage: false });
+    return { finalUrl: page.url(), screenshotDataUrl: `data:image/jpeg;base64,${screenshot.toString('base64')}`, ...data };
   } finally {
     await browser.close();
   }
@@ -197,7 +203,8 @@ export async function scanUrlForPerformance(url: URL): Promise<PerformancePageDa
       };
     });
 
-    return { finalUrl: page.url(), ...data };
+    const screenshot = await page.screenshot({ type: 'jpeg', quality: 70, fullPage: false });
+    return { finalUrl: page.url(), screenshotDataUrl: `data:image/jpeg;base64,${screenshot.toString('base64')}`, ...data };
   } finally {
     await browser.close();
   }
