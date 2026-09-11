@@ -78,11 +78,9 @@ export async function POST(request: Request) {
       });
     }
 
-    if (email) {
-      recordScan(report, email, requesterIp).catch(() => {
+    recordScan(report, email ?? null, requesterIp).catch(() => {
       // Best-effort analytics write; never block the user response on it.
-      });
-    }
+    });
 
     return NextResponse.json({
       score: report.score,

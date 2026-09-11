@@ -32,10 +32,26 @@ npm run dev
 | `RESEND_API_KEY` | Clé API [Resend](https://resend.com/api-keys) |
 | `RESEND_FROM_EMAIL` | Expéditeur vérifié dans Resend, ex. `Accessibility Reviewer <reports@tondomaine.com>` |
 | `POSTGRES_URL` | Connection string Postgres. Sur Vercel : ajoute l'intégration **Storage → Postgres** (Neon) depuis le dashboard, elle configure cette variable automatiquement. |
+| `ADMIN_REPORT_TOKEN` | Token secret utilisé dans `Authorization: Bearer ...` pour consulter la liste des scans via `/api/admin/scans`. |
 | `CONTACT_EMAIL` / `CONTACT_URL` | Utilisés dans le CTA "Contactez-nous" du rapport |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | Même adresse, exposée côté client pour le bouton mailto de l'écran de résultat |
 
 Aucune clé de LLM n'est requise.
+
+### Liste des scans
+
+Chaque scan réussi est enregistré dans Postgres, même sans courriel : URL finale,
+type de scan, langue, score, nombre de problèmes, IP technique et date. Les
+courriels sont optionnels et ne sont pas nécessaires pour utiliser le scanner.
+
+Après avoir configuré `POSTGRES_URL` et `ADMIN_REPORT_TOKEN` dans Vercel :
+
+```bash
+curl -H "Authorization: Bearer $ADMIN_REPORT_TOKEN" \
+	https://your-deployment.vercel.app/api/admin/scans
+```
+
+Ne mets jamais `ADMIN_REPORT_TOKEN` dans le frontend, GitHub ou une URL publique.
 
 ### Base de données
 
