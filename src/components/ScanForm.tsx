@@ -17,6 +17,7 @@ const ERROR_KEY_BY_CODE: Record<string, keyof ReturnType<typeof t>> = {
   blocked_url: 'errorBlockedUrl',
   rate_limited: 'errorRateLimited',
   scan_timeout: 'errorTimeout',
+  email_not_configured: 'errorEmailNotConfigured',
 };
 
 const SCAN_TYPE_LABEL_KEY: Record<ScanType, 'scanTypeAccessibility' | 'scanTypeSeo' | 'scanTypePerformance'> = {

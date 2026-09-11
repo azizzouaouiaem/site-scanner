@@ -102,7 +102,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'scan_timeout' }, { status: 504 });
     }
     if (error instanceof Error && error.message === 'email_not_configured') {
-      return NextResponse.json({ error: 'email_not_configured' }, { status: 500 });
+      console.error('email_not_configured: set RESEND_API_KEY and RESEND_FROM_EMAIL in Vercel');
+      return NextResponse.json({ error: 'email_not_configured' }, { status: 503 });
     }
     // Log server-side for observability without leaking internals to the client.
     console.error('scan_failed', error);

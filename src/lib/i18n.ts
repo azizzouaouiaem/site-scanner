@@ -42,6 +42,7 @@ export const translations = {
     errorBlockedUrl: "This URL can't be scanned (private/internal address).",
     errorRateLimited: 'Too many scans from this email recently. Please try again later.',
     errorTimeout: 'The page took too long to load. Please try again.',
+    errorEmailNotConfigured: 'Email delivery is not configured on this deployment. Add RESEND_API_KEY and RESEND_FROM_EMAIL in Vercel, then redeploy.',
     impact: {
       critical: 'Critical',
       serious: 'Serious',
@@ -91,6 +92,7 @@ export const translations = {
     errorBlockedUrl: "Cette URL ne peut pas être analysée (adresse privée/interne).",
     errorRateLimited: 'Trop de demandes récentes pour ce courriel. Veuillez réessayer plus tard.',
     errorTimeout: "La page a pris trop de temps à charger. Veuillez réessayer.",
+    errorEmailNotConfigured: 'L’envoi de courriels n’est pas configuré sur ce déploiement. Ajoutez RESEND_API_KEY et RESEND_FROM_EMAIL dans Vercel, puis redéployez.',
     impact: {
       critical: 'Critique',
       serious: 'Sérieux',
