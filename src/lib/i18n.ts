@@ -25,7 +25,8 @@ export const translations = {
     collectionNotice:
       'Submitted URLs and email addresses are stored so we can follow up and improve this tool.',
     resultsTitle: 'Scan complete',
-    resultsSubtitle: (email: string) => `The detailed report was sent to ${email}.`,
+    resultsSubtitle: () => 'Your scan results are ready below.',
+    viewHtmlReport: 'View detailed HTML report',
     scoreLabel: {
       accessibility: 'Accessibility score',
       seo: 'SEO score',
@@ -75,7 +76,8 @@ export const translations = {
     collectionNotice:
       "Les URLs et courriels soumis sont conservés afin d'assurer un suivi et d'améliorer cet outil.",
     resultsTitle: 'Analyse terminée',
-    resultsSubtitle: (email: string) => `Le rapport détaillé a été envoyé à ${email}.`,
+    resultsSubtitle: () => 'Les résultats de votre analyse sont prêts ci-dessous.',
+    viewHtmlReport: 'Voir le rapport HTML détaillé',
     scoreLabel: {
       accessibility: "Score d'accessibilité",
       seo: 'Score SEO',

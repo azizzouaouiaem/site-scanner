@@ -14,7 +14,7 @@ export const scanRequestSchema = z.object({
         return false;
       }
     }, 'invalid_url'),
-  email: z.string().trim().toLowerCase().email().max(320),
+  email: z.string().trim().toLowerCase().email().max(320).optional(),
   language: z.enum(['en', 'fr']),
   scanType: z.enum(['accessibility', 'seo', 'performance']),
 });

@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Accessibility Audit Report — Ferrari.com</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #030304;
+    --surface: #0c0c0e;
+    --border: #201f22;
+    --accent: #e82127;
+    --green: #5bffb0;
+    --text: #f5f5f7;
+    --muted: #9a9a9f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 32px 96px;
+  }
+  header.hero {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 8px 0 4px;
+  }
+  .subtitle { color: var(--muted); font-size: 14px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 32px 0;
+  }
+  .summary-grid .card { text-align: center; }
+  .summary-grid .big { font-size: 32px; font-weight: 800; }
+  .summary-grid .label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-top: 4px; }
+  .score-critical { color: var(--accent); }
+  h2.section-title {
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin: 48px 0 16px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+  }
+  figure { margin: 16px 0; }
+  figure img {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: block;
+  }
+  figcaption { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .shots-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .shots-grid .shot-box {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 90px;
+  }
+  .shots-grid img { max-width: 100%; max-height: 70px; border: none; }
+  .issue {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .issue-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .badge.critical { background: #ff3b3b22; color: #ff3b3b; }
+  .badge.serious  { background: #ff8a3b22; color: #ff8a3b; }
+  .badge.moderate { background: #ffd23b22; color: #ffd23b; }
+  .badge.minor    { background: #8a8f9822; color: #8a8f98; }
+  .issue h3 { font-size: 17px; margin: 10px 0 2px; }
+  .meta { font-size: 12px; color: var(--muted); }
+  .code-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  @media (max-width: 700px) { .code-cols, .summary-grid, .shots-grid { grid-template-columns: 1fr; } }
+  .code-col .label-sm { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .code-col.before .label-sm { color: var(--accent); }
+  .code-col.after .label-sm { color: var(--green); }
+  pre {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 11.5px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #d7d7db;
+    margin: 0;
+  }
+  .impact-line {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+    font-size: 13px;
+    color: #d7d7db;
+  }
+  .impact-line strong { color: var(--text); }
+  .time-row { display: flex; gap: 24px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+  .time-row b { color: var(--text); }
+  ol.advantages { padding-left: 22px; }
+  ol.advantages li { margin-bottom: 14px; font-size: 14px; }
+  ol.advantages li strong { color: var(--green); }
+  .cta {
+    margin-top: 48px;
+    background: linear-gradient(135deg, #1a1a1d, #0f0f11);
+    border: 1px solid #2a2a2e;
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+  }
+  .cta .headline { font-size: 22px; font-weight: 800; }
+  .cta .time { color: var(--green); font-size: 36px; font-weight: 800; margin: 8px 0 16px; }
+  .cta a {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    padding: 12px 28px;
+    border-radius: 999px;
+    font-size: 13px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  footer { text-align: center; color: #5a5a5f; font-size: 11px; margin-top: 40px; }
+  @media print {
+    body { background: #fff; color: #111; }
+    .card, .issue, .shots-grid .shot-box, pre { background: #f7f7f8; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hero">
+    <div class="eyebrow">Accessibility Reviewer — Detailed Report</div>
+    <h1>Ferrari.com — Accessibility Audit (WCAG)</h1>
+    <div class="subtitle">https://www.ferrari.com/it-IT · Scanned September 11, 2026 · axe-core 4.13</div>
+  </header>
+
+  <div class="summary-grid">
+    <div class="card">
+      <div class="big score-critical">55</div>
+      <div class="label">Score /100</div>
+    </div>
+    <div class="card">
+      <div class="big">78</div>
+      <div class="label">Issues found</div>
+    </div>
+    <div class="card">
+      <div class="big">15.4 h</div>
+      <div class="label">Manual fix time</div>
+    </div>
+    <div class="card">
+      <div class="big" style="color:var(--green)">3.9 h</div>
+      <div class="label">Automated fix time</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Scanned page overview</h2>
+  <figure>
+    <img src="ferrari-viewport.png" alt="Screenshot of the Ferrari.com (it-IT) homepage, above the fold." />
+    <figcaption>Above-the-fold view — Ferrari.com/it-IT (desktop 1920×1080).</figcaption>
+  </figure>
+
+  <h2 class="section-title">DOM elements in question (close-up captures)</h2>
+  <div class="shots-grid">
+    <div class="shot-box"><img src="ferrari-dom-image-alt.png" alt="Heritage carousel cars, shown with no alt text at all" /></div>
+    <div class="shot-box"><img src="ferrari-dom-listitem.png" alt="Carousel pagination dots, orphan <li> elements outside any <ul>/<ol>" /></div>
+    <div class="shot-box"><img src="ferrari-dom-aria.png" alt="Carousel navigator arrow with an invalid ARIA attribute" /></div>
+  </div>
+  <p class="subtitle" style="margin-top:12px;">Left to right: fully-loaded heritage carousel photos with no <code>alt</code> attribute at all, pagination <code>&lt;li&gt;</code> dots sitting outside any list, and a carousel navigator arrow driven by an <code>aria-controls</code> attribute pointing at a non-existent id. The exact HTML for each is reproduced below.</p>
+
+  <h2 class="section-title">Detail of the 9 issues — what needs to change</h2>
+
+  <div class="issue">
+    <div class="issue-head">
+      <span class="badge serious">Serious</span>
+      <h3 style="margin:0;">&lt;li&gt; elements must be contained in a &lt;ul&gt; or &lt;ol&gt;</h3>
+    </div>
+    <div class="meta">axe rule: <code>listitem</code> · WCAG 1.3.1 · 41 occurrences (pagination carousel)</div>
+    <div class="code-cols">
+      <div class="code-col before">
+        <div class="label-sm">Before (real excerpt)</div>
+        <pre>&lt;li class="f-carousel-editorial__pagination__item
+    f-carousel-editorial__pagination__item--autoplay
+    f-carousel-editorial__pagination__item--active"&gt;
+&lt;/li&gt;</pre>
+      </div>
+      <div class="code-col after">
+        <div class="label-sm">After (recommended)</div>
+        <pre>&lt;ul class="f-carousel-editorial__pagination"&gt;
+  &lt;li class="...item--autoplay ...item--active"&gt;
+  &lt;/li&gt;
+  ...
+&lt;/ul&gt;</pre>
+      </div>
+    </div>
+    <div class="impact-line"><strong>Business impact:</strong> pagination dots sitting outside a list lose their position/count context (“3 of 7”) for screen-reader users browsing menus and product carousels.</div>
+    <div class="time-row"><span>Manual: <b>4.8 h</b></span><span>Automated: <b>71 min</b></span></div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-head">
+      <span class="badge critical">Critical</span>
+      <h3 style="margin:0;">ARIA attributes must conform to valid values</h3>
+    </div>
+    <div class="meta">axe rule: <code>aria-valid-attr-value</code> · WCAG 4.1.2 · 10 occurrences (carousel navigator)</div>
+    <div class="code-cols">
+      <div class="code-col before">
+        <div class="label-sm">Before (real excerpt)</div>
+        <pre>&lt;f-carousel-navigator
+  aria-controls="swiper-wrapper-2c0ea91032e2a26a7"&gt;
+&lt;/f-carousel-navigator&gt;
+&lt;!-- no element with this id exists in the DOM --&gt;</pre>
+      </div>
+      <div class="code-col after">
+        <div class="label-sm">After (recommended)</div>
+        <pre>&lt;f-carousel-navigator aria-controls="swiper-wrapper-2c0e..."&gt;
+&lt;/f-carousel-navigator&gt;
+
+&lt;div id="swiper-wrapper-2c0ea91032e2a26a7"&gt;
+  &lt;!-- the actual slides wrapper --&gt;
+&lt;/div&gt;</pre>
+      </div>
+    </div>
+    <div class="impact-line"><strong>Business impact:</strong> an <code>aria-controls</code> pointing at a non-existent id actively misleads assistive technology about what the control does — worse than having no ARIA at all.</div>
+    <div class="time-row"><span>Manual: <b>3.3 h</b></span><span>Automated: <b>50 min</b></span></div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-head">
+      <span class="badge critical">Critical</span>
+      <h3 style="margin:0;">Images must have alternative text</h3>
+    </div>
+    <div class="meta">axe rule: <code>image-alt</code> · WCAG 1.1.1 · 7 occurrences (editorial carousel, collection banners)</div>
+    <div class="code-cols">
+      <div class="code-col before">
+        <div class="label-sm">Before (real excerpt)</div>
+        <pre>&lt;img src="https://ferrari.scen..."
+     style="max-width: var(--f-a..."&gt;
+&lt;!-- no alt attribute --&gt;</pre>
+      </div>
+      <div class="code-col after">
+        <div class="label-sm">After (recommended)</div>
+        <pre>&lt;img src="https://ferrari.scen..."
+     alt="Ferrari Uomo collection — new
+          autumn 2026 collection"
+     style="max-width: var(--f-a..."&gt;</pre>
+      </div>
+    </div>
+    <div class="impact-line"><strong>Business impact:</strong> product/marketing images are invisible to screen-reader users and to search engines — lost sales content and SEO visibility.</div>
+    <div class="time-row"><span>Manual: <b>2.7 h</b></span><span>Automated: <b>41 min</b></span></div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-head">
+      <span class="badge critical">Critical</span>
+      <h3 style="margin:0;">Select element must have an accessible name</h3>
+    </div>
+    <div class="meta">axe rule: <code>select-name</code> · WCAG 4.1.2 · 1 occurrence (contact popup form)</div>
+    <div class="code-cols">
+      <div class="code-col before">
+        <div class="label-sm">Before (real excerpt)</div>
+        <pre>&lt;select id="country" name="country"&gt;
+  &lt;option value="" selected disabled&gt;
+    Scegli il tuo paese*
+  &lt;/option&gt;
+&lt;/select&gt;</pre>
+      </div>
+      <div class="code-col after">
+        <div class="label-sm">After (recommended)</div>
+        <pre>&lt;label for="country"&gt;Scegli il tuo paese*&lt;/label&gt;
+&lt;select id="country" name="country"&gt;
+  &lt;option value="" selected disabled&gt;
+    Scegli il tuo paese*
+  &lt;/option&gt;
+&lt;/select&gt;</pre>
+      </div>
+    </div>
+    <div class="impact-line"><strong>Business impact:</strong> an unlabeled country dropdown can silently block a contact or quote request for a customer using a screen reader.</div>
+    <div class="time-row"><span>Manual: <b>1.5 h</b></span><span>Automated: <b>23 min</b></span></div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-head">
+      <span class="badge serious">Serious</span>
+      <h3 style="margin:0;">Links must have discernible text</h3>
+    </div>
+    <div class="meta">axe rule: <code>link-name</code> · WCAG 2.4.4, 4.1.2 · 1 occurrence</div>
+    <div class="code-cols">
+      <div class="code-col before">
+        <div class="label-sm">Before</div>
+        <pre>&lt;a href="..." aria-label=""&gt;
+  &lt;svg&gt;...&lt;/svg&gt;
+&lt;/a&gt;
+&lt;!-- icon-only link, no accessible name --&gt;</pre>
+      </div>
+      <div class="code-col after">
+        <div class="label-sm">After (recommended)</div>
+        <pre>&lt;a href="..." aria-label="Follow Ferrari on Instagram"&gt;
+  &lt;svg aria-hidden="true"&gt;...&lt;/svg&gt;
+&lt;/a&gt;</pre>
+      </div>
+    </div>
+    <div class="impact-line"><strong>Business impact:</strong> links with no discernible purpose confuse assistive-technology users and hurt conversion on calls-to-action.</div>
+    <div class="time-row"><span>Manual: <b>45 min</b></span><span>Automated: <b>11 min</b></span></div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-head">
+      <span class="badge serious">Serious</span>
+      <h3 style="margin:0;">&lt;ul&gt;/&lt;ol&gt; must only contain &lt;li&gt;, &lt;script&gt; or &lt;template&gt;</h3>
+    </div>
+    <div class="meta">axe rule: <code>list</code> · WCAG 1.3.1 · 1 occurrence (<code>.menu-pillars-list</code>)</div>
+    <div class="code-cols">
+      <div class="code-col before">
+        <div class="label-sm">Before (real excerpt)</div>
+        <pre>&lt;ul class="menu-pillars-list"&gt;
+  &lt;div class="pillar"&gt;...&lt;/div&gt;
+&lt;/ul&gt;</pre>
+      </div>
+      <div class="code-col after">
+        <div class="label-sm">After (recommended)</div>
+        <pre>&lt;ul class="menu-pillars-list"&gt;
+  &lt;li class="pillar"&gt;...&lt;/li&gt;
+&lt;/ul&gt;</pre>
+      </div>
+    </div>
+    <div class="impact-line"><strong>Business impact:</strong> broken list markup strips the grouping information screen readers use to browse the main menu.</div>
+    <div class="time-row"><span>Manual: <b>45 min</b></span><span>Automated: <b>11 min</b></span></div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-head">
+      <span class="badge serious">Serious</span>
+      <h3 style="margin:0;">&lt;svg&gt; elements with an img role must have alternative text</h3>
+    </div>
+    <div class="meta">axe rule: <code>svg-img-alt</code> · WCAG 1.1.1 · 1 occurrence (Ferrari logo)</div>
+    <div class="code-cols">
+      <div class="code-col before">
+        <div class="label-sm">Before (real excerpt)</div>
+        <pre>&lt;svg role="img" aria-labelledby="ferrari-logo-svg-title"
+     viewBox="0 0 162 224"&gt;
+  &lt;!-- no &lt;title id="ferrari-logo-svg-title"&gt; --&gt;
+&lt;/svg&gt;</pre>
+      </div>
+      <div class="code-col after">
+        <div class="label-sm">After (recommended)</div>
+        <pre>&lt;svg role="img" aria-labelledby="ferrari-logo-svg-title"
+     viewBox="0 0 162 224"&gt;
+  &lt;title id="ferrari-logo-svg-title"&gt;Ferrari logo&lt;/title&gt;
+&lt;/svg&gt;</pre>
+      </div>
+    </div>
+    <div class="impact-line"><strong>Business impact:</strong> the brand's own logo is not announced at all to screen-reader users — a damaging omission for brand identity.</div>
+    <div class="time-row"><span>Manual: <b>45 min</b></span><span>Automated: <b>11 min</b></span></div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-head">
+      <span class="badge minor">Minor</span>
+      <h3 style="margin:0;">ARIA role should be appropriate for the element</h3>
+    </div>
+    <div class="meta">axe rule: <code>aria-allowed-role</code> · 14 occurrences (footer submenus)</div>
+    <div class="code-cols">
+      <div class="code-col before">
+        <div class="label-sm">Before (real excerpt)</div>
+        <pre>&lt;ul class="Footer_nav-links__2ny_i" role="region"
+    aria-labelledby="btn-racing" id="submenu-racing"&gt;</pre>
+      </div>
+      <div class="code-col after">
+        <div class="label-sm">After (recommended)</div>
+        <pre>&lt;section aria-labelledby="btn-racing" id="submenu-racing"&gt;
+  &lt;ul class="Footer_nav-links__2ny_i"&gt;...&lt;/ul&gt;
+&lt;/section&gt;</pre>
+      </div>
+    </div>
+    <div class="impact-line"><strong>Business impact:</strong> misused ARIA roles make the footer submenus announce themselves incorrectly, disrupting screen-reader navigation site-wide.</div>
+    <div class="time-row"><span>Manual: <b>30 min</b></span><span>Automated: <b>8 min</b></span></div>
+  </div>
+
+  <div class="issue">
+    <div class="issue-head">
+      <span class="badge moderate">Moderate</span>
+      <h3 style="margin:0;">All page content should be contained by landmarks</h3>
+    </div>
+    <div class="meta">axe rule: <code>region</code> · 2 occurrences (accessiBe link, header logo)</div>
+    <div class="code-cols">
+      <div class="code-col before">
+        <div class="label-sm">Before (real excerpt)</div>
+        <pre>&lt;body&gt;
+  &lt;a data-acsb="sr-trigger" class="acsb-sr-only"&gt;...&lt;/a&gt;
+  &lt;div class="Header_logo__3zG9o"&gt;...&lt;/div&gt;
+  &lt;header&gt;...&lt;/header&gt;
+&lt;/body&gt;</pre>
+      </div>
+      <div class="code-col after">
+        <div class="label-sm">After (recommended)</div>
+        <pre>&lt;body&gt;
+  &lt;header&gt;
+    &lt;a data-acsb="sr-trigger" class="acsb-sr-only"&gt;...&lt;/a&gt;
+    &lt;div class="Header_logo__3zG9o"&gt;...&lt;/div&gt;
+    ...
+  &lt;/header&gt;
+&lt;/body&gt;</pre>
+      </div>
+    </div>
+    <div class="impact-line"><strong>Business impact:</strong> content sitting outside any structural region is effectively impossible to navigate for screen-reader users, who browse page region by region.</div>
+    <div class="time-row"><span>Manual: <b>23 min</b></span><span>Automated: <b>6 min</b></span></div>
+  </div>
+
+  <h2 class="section-title">Top 10 business advantages after fixing</h2>
+  <div class="card">
+    <ol class="advantages">
+      <li><strong>Expanded reach:</strong> roughly 1.3 billion people worldwide live with a disability — removing these barriers unlocks a segment of luxury buyers currently excluded from the online purchase journey.</li>
+      <li><strong>Reduced legal risk:</strong> Ferrari sells across the EU, where the European Accessibility Act (2025) now applies to e-commerce, as well as in the US (ADA) and Canada (AODA) — fixing these 9 rules directly reduces exposure to complaints.</li>
+      <li><strong>SEO gain:</strong> alt text and clean semantic structure (lists, landmarks) improve indexing and image-search visibility — more organic traffic to model/configurator pages.</li>
+      <li><strong>Better conversion on the contact funnel:</strong> a properly labeled country field and working carousels reduce drop-off on quote requests and dealership contact.</li>
+      <li><strong>Stronger brand image:</strong> a luxury brand perceived as inclusive and modern strengthens brand equity, especially with younger and ESG-conscious buyers.</li>
+      <li><strong>Reduced technical debt:</strong> fixing semantic patterns (lists, ARIA) now prevents the same mistakes from being copied into every new component built on the same design system.</li>
+      <li><strong>Better mobile and voice-assistant compatibility:</strong> clean landmarks and ARIA also improve how voice assistants and in-car browsers parse the page — an increasingly common part of the purchase journey.</li>
+      <li><strong>Easier future audits:</strong> a clean baseline makes it far cheaper to pass future digital-compliance audits required by dealer/franchise portals (increasingly requiring WCAG AA).</li>
+      <li><strong>Competitive differentiation:</strong> none of the peer automakers audited (Mercedes-Benz, BMW, Volkswagen) had a perfect score either — being first to fix this becomes a genuine PR angle ("Ferrari, leading the industry in digital accessibility").</li>
+      <li><strong>Lower customer-support load:</strong> clearly labeled forms and controls mean fewer confused customers abandoning the quote flow or calling support asking "how do I select my country".</li>
+    </ol>
+  </div>
+
+  <div class="cta">
+    <div class="headline">We could fix these 9 issues for you in</div>
+    <div class="time">3.9 h</div>
+    <a href="mailto:contact@example.com">Contact us</a>
+  </div>
+
+  <footer>Report generated automatically by Accessibility Reviewer · axe-core 4.13 · Heuristic score, does not replace a full manual WCAG audit.</footer>
+
+</div>
+</body>
+</html>

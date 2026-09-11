@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
   try {
     const [emailCount, ipCount] = await Promise.all([
-      countRecentScansByEmail(email, EMAIL_RATE_LIMIT_WINDOW_MINUTES),
+      email ? countRecentScansByEmail(email, EMAIL_RATE_LIMIT_WINDOW_MINUTES) : Promise.resolve(0),
       requesterIp ? countRecentScansByIp(requesterIp, IP_RATE_LIMIT_WINDOW_MINUTES) : Promise.resolve(0),
     ]);
 
@@ -70,15 +70,19 @@ export async function POST(request: Request) {
   try {
     const report = await buildScanReport(validatedUrl, language, scanType);
 
-    await sendReportEmail({
-      report,
-      toEmail: email,
-      subject: emailSubject(language, scanType, report.finalUrl),
-    });
+    if (email) {
+      await sendReportEmail({
+        report,
+        toEmail: email,
+        subject: emailSubject(language, scanType, report.finalUrl),
+      });
+    }
 
-    recordScan(report, email, requesterIp).catch(() => {
+    if (email) {
+      recordScan(report, email, requesterIp).catch(() => {
       // Best-effort analytics write; never block the user response on it.
-    });
+      });
+    }
 
     return NextResponse.json({
       score: report.score,

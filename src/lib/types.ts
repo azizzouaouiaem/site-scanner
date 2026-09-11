@@ -75,7 +75,7 @@ export interface ScanReport {
 
 export interface ScanRequestBody {
   url: string;
-  email: string;
+  email?: string;
   language: Language;
   scanType: ScanType;
 }

@@ -30,7 +30,6 @@ export default function ScanForm() {
   const [language, setLanguage] = useState<Language>('en');
   const [scanType, setScanType] = useState<ScanType>('accessibility');
   const [url, setUrl] = useState('');
-  const [email, setEmail] = useState('');
   const [view, setView] = useState<ViewState>({ status: 'idle' });
 
   const strings = t(language);
@@ -43,7 +42,7 @@ export default function ScanForm() {
       const response = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, email, language, scanType }),
+        body: JSON.stringify({ url, language, scanType }),
       });
 
       const data = await response.json();
@@ -140,20 +139,6 @@ export default function ScanForm() {
               />
             </label>
 
-            <label className="flex flex-col gap-2">
-              <span className="text-xs font-bold uppercase tracking-widest text-white/50">
-                {strings.emailLabel}
-              </span>
-              <input
-                required
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder={strings.emailPlaceholder}
-                className="rounded-2xl border border-white/10 bg-[var(--surface)] px-5 py-4 text-base text-white outline-none placeholder:text-white/30 focus:border-[var(--accent)]"
-              />
-            </label>
-
             <button
               type="submit"
               disabled={view.status === 'submitting'}
@@ -178,7 +163,7 @@ export default function ScanForm() {
       )}
 
       {view.status === 'success' && (
-        <ResultSummary summary={view.summary} language={language} email={email} onReset={reset} />
+        <ResultSummary summary={view.summary} language={language} onReset={reset} />
       )}
     </div>
   );

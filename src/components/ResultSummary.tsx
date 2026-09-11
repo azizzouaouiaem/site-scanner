@@ -30,12 +30,10 @@ const IMPACT_DOT: Record<AxeImpact, string> = {
 export default function ResultSummary({
   summary,
   language,
-  email,
   onReset,
 }: Readonly<{
   summary: ScanSummary;
   language: Language;
-  email: string;
   onReset: () => void;
 }>) {
   const strings = t(language);
@@ -43,7 +41,7 @@ export default function ResultSummary({
   return (
     <div className="flex flex-1 flex-col">
       <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-4xl">{strings.resultsTitle}</h1>
-      <p className="mt-2 break-all text-sm text-white/50">{strings.resultsSubtitle(email)}</p>
+      <p className="mt-2 text-sm text-white/50">{strings.resultsSubtitle()}</p>
 
       <div className="mt-8 rounded-3xl border border-white/10 bg-[var(--surface)] p-8 text-center">
         <div className="text-xs uppercase tracking-widest text-white/40">{strings.scoreLabel[summary.scanType]}</div>
@@ -112,6 +110,15 @@ export default function ResultSummary({
           {strings.contactCta}
         </a>
       </div>
+
+      <a
+        href="/reports/ferrari/ferrari-audit-report.html"
+        target="_blank"
+        rel="noreferrer"
+        className="mt-6 self-center text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white"
+      >
+        {strings.viewHtmlReport}
+      </a>
 
       <button
         type="button"
