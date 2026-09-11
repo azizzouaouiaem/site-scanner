@@ -99,6 +99,9 @@ export async function POST(request: Request) {
       })),
       businessImpacts: report.businessImpacts,
       finalUrl: report.finalUrl,
+      reportUrl: validatedUrl.hostname.endsWith('ferrari.com')
+        ? '/reports/ferrari/ferrari-audit-report.html'
+        : null,
       reportHtml: report.score > 95 ? null : renderScanReportHtml(report),
     });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { t } from '@/lib/i18n';
 import { formatMinutes } from '@/lib/scoring';
+import { useEffect, useState } from 'react';
 import type { AxeImpact, Language, ScanType } from '@/lib/types';
 
 export interface ScanSummary {
@@ -18,6 +19,7 @@ export interface ScanSummary {
   }>;
   businessImpacts: Array<{ ruleId: string; impact: AxeImpact; statement: string }>;
   finalUrl: string;
+  reportUrl: string | null;
   reportHtml: string | null;
 }
 
@@ -38,6 +40,16 @@ export default function ResultSummary({
   onReset: () => void;
 }>) {
   const strings = t(language);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isReportOpen) return undefined;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsReportOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isReportOpen]);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -120,16 +132,15 @@ export default function ResultSummary({
       </div>
       )}
 
-      {summary.score <= 95 && summary.reportHtml && (
-        <a
-          href={`data:text/html;charset=utf-8,${encodeURIComponent(summary.reportHtml)}`}
-          target="_blank"
-          rel="noreferrer"
+      {summary.score <= 95 && (summary.reportUrl || summary.reportHtml) && (
+        <button
+          type="button"
+          onClick={() => setIsReportOpen(true)}
           className="report-cta mt-6 self-center"
         >
           <span className="report-cta__label">{strings.viewHtmlReport}</span>
           <span aria-hidden="true" className="report-cta__arrow">↗</span>
-        </a>
+        </button>
       )}
 
       <button
@@ -139,6 +150,34 @@ export default function ResultSummary({
       >
         &larr; {strings.submit}
       </button>
+
+      {isReportOpen && (summary.reportUrl || summary.reportHtml) && (
+        <dialog
+          open
+          className="report-modal"
+          aria-label={strings.viewHtmlReport}
+        >
+          <div className="report-modal__panel">
+            <div className="report-modal__header">
+              <span>{strings.viewHtmlReport}</span>
+              <button
+                type="button"
+                onClick={() => setIsReportOpen(false)}
+                className="report-modal__close"
+                aria-label={strings.closeReport}
+              >
+                ×
+              </button>
+            </div>
+            <iframe
+              title={strings.viewHtmlReport}
+              src={summary.reportUrl ?? undefined}
+              srcDoc={summary.reportUrl ? undefined : summary.reportHtml ?? undefined}
+              className="report-modal__frame"
+            />
+          </div>
+        </dialog>
+      )}
     </div>
   );
 }
