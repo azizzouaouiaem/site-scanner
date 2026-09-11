@@ -7,11 +7,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "node scripts/postinstall.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
-    "@sparticuz/chromium": "^131.0.1",
+    "@sparticuz/chromium-min": "^131.0.1",
     "axe-core": "^4.10.2",
     "next": "^15.1.6",
     "playwright-core": "^1.49.1",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
+    "@sparticuz/chromium": "^131.0.1",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.10.7",
     "@types/react": "^19.0.7",

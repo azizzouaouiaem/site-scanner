@@ -33,10 +33,11 @@ async function launchBrowser(): Promise<Browser> {
   if (isServerlessEnvironment()) {
     // Lazy-required: this package only ships a usable binary on Linux, so it
     // must never be evaluated during local (non-serverless) development.
-    const { default: chromium } = await import('@sparticuz/chromium');
+    const { default: chromium } = await import('@sparticuz/chromium-min');
+    const packUrl = process.env.CHROMIUM_PACK_URL ?? `https://${process.env.VERCEL_URL}/chromium-pack.tar`;
     return playwrightChromium.launch({
       args: chromium.args,
-      executablePath: await chromium.executablePath(),
+      executablePath: await chromium.executablePath(packUrl),
       headless: true,
     });
   }

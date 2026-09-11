@@ -7,7 +7,7 @@ const nextConfig = {
   // bundled by webpack; they need to be required as real node_modules at
   // runtime. axe-core is also excluded so its UMD build is read from disk
   // as-is instead of being reprocessed by webpack.
-  serverExternalPackages: ['@sparticuz/chromium', 'playwright-core', 'axe-core'],
+  serverExternalPackages: ['@sparticuz/chromium', '@sparticuz/chromium-min', 'playwright-core', 'axe-core'],
 };
 
 export default nextConfig;
