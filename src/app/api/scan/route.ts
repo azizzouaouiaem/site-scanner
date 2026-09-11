@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { countRecentScansByEmail, countRecentScansByIp, recordScan } from '@/lib/db';
 import { sendReportEmail } from '@/lib/email';
 import { buildScanReport } from '@/lib/report';
+import { renderScanReportHtml } from '@/lib/report-html';
 import { assertPublicHttpUrl, UnsafeUrlError } from '@/lib/ssrf-guard';
 import { ScanNavigationError, ScanTimeoutError } from '@/lib/browser';
 import { scanRequestSchema } from '@/lib/validators';
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
       })),
       businessImpacts: report.businessImpacts,
       finalUrl: report.finalUrl,
+      reportHtml: report.score > 95 ? null : renderScanReportHtml(report),
     });
   } catch (error) {
     if (error instanceof ScanTimeoutError || error instanceof ScanNavigationError) {

@@ -27,6 +27,7 @@ export const translations = {
     resultsTitle: 'Scan complete',
     resultsSubtitle: () => 'Your scan results are ready below.',
     viewHtmlReport: 'View detailed HTML report',
+    congratulations: 'Excellent result — your page is already performing very well. No detailed remediation report is needed.',
     scoreLabel: {
       accessibility: 'Accessibility score',
       seo: 'SEO score',
@@ -78,6 +79,7 @@ export const translations = {
     resultsTitle: 'Analyse terminée',
     resultsSubtitle: () => 'Les résultats de votre analyse sont prêts ci-dessous.',
     viewHtmlReport: 'Voir le rapport HTML détaillé',
+    congratulations: "Excellent résultat — votre page fonctionne déjà très bien. Aucun rapport détaillé de correction n'est nécessaire.",
     scoreLabel: {
       accessibility: "Score d'accessibilité",
       seo: 'Score SEO',

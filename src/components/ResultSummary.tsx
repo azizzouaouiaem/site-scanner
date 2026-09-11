@@ -18,6 +18,7 @@ export interface ScanSummary {
   }>;
   businessImpacts: Array<{ ruleId: string; impact: AxeImpact; statement: string }>;
   finalUrl: string;
+  reportHtml: string | null;
 }
 
 const IMPACT_DOT: Record<AxeImpact, string> = {
@@ -42,6 +43,12 @@ export default function ResultSummary({
     <div className="flex flex-1 flex-col">
       <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-4xl">{strings.resultsTitle}</h1>
       <p className="mt-2 text-sm text-white/50">{strings.resultsSubtitle()}</p>
+
+      {summary.score > 95 && (
+        <div className="mt-6 rounded-2xl border border-[#5bffb0]/30 bg-[#5bffb0]/10 p-5 text-center text-sm font-semibold text-[#baffd9]">
+          {strings.congratulations}
+        </div>
+      )}
 
       <div className="mt-8 rounded-3xl border border-white/10 bg-[var(--surface)] p-8 text-center">
         <div className="text-xs uppercase tracking-widest text-white/40">{strings.scoreLabel[summary.scanType]}</div>
@@ -98,6 +105,7 @@ export default function ResultSummary({
         </div>
       )}
 
+      {summary.score <= 95 && (
       <div className="mt-6 rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-8 text-center">
         <div className="text-xs uppercase tracking-widest text-white/40">{strings.automatedTimeLabel}</div>
         <div className="mt-2 text-4xl font-extrabold text-[#5bffb0]">
@@ -110,16 +118,19 @@ export default function ResultSummary({
           {strings.contactCta}
         </a>
       </div>
+      )}
 
-      <a
-        href="/reports/ferrari/ferrari-audit-report.html"
-        target="_blank"
-        rel="noreferrer"
-        className="report-cta mt-6 self-center"
-      >
-        <span className="report-cta__label">{strings.viewHtmlReport}</span>
-        <span aria-hidden="true" className="report-cta__arrow">↗</span>
-      </a>
+      {summary.score <= 95 && summary.reportHtml && (
+        <a
+          href={`data:text/html;charset=utf-8,${encodeURIComponent(summary.reportHtml)}`}
+          target="_blank"
+          rel="noreferrer"
+          className="report-cta mt-6 self-center"
+        >
+          <span className="report-cta__label">{strings.viewHtmlReport}</span>
+          <span aria-hidden="true" className="report-cta__arrow">↗</span>
+        </a>
+      )}
 
       <button
         type="button"
