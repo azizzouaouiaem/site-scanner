@@ -21,6 +21,8 @@ function getAxeSource(): string {
 
 const NAVIGATION_TIMEOUT_MS = 25_000;
 const AXE_TIMEOUT_MS = 20_000;
+const DEFAULT_CHROMIUM_PACK_URL =
+  'https://github.com/Sparticuz/chromium/releases/download/v152.0.0/chromium-v152.0.0-pack.x64.tar';
 
 const REALISTIC_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
@@ -34,7 +36,7 @@ async function launchBrowser(): Promise<Browser> {
     // Lazy-required: this package only ships a usable binary on Linux, so it
     // must never be evaluated during local (non-serverless) development.
     const { default: chromium } = await import('@sparticuz/chromium-min');
-    const packUrl = process.env.CHROMIUM_PACK_URL ?? `https://${process.env.VERCEL_URL}/chromium-pack.tar`;
+    const packUrl = process.env.CHROMIUM_PACK_URL ?? DEFAULT_CHROMIUM_PACK_URL;
     return playwrightChromium.launch({
       args: chromium.args,
       executablePath: await chromium.executablePath(packUrl),

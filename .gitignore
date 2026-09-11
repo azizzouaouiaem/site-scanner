@@ -1,6 +1,5 @@
 node_modules/
 .next/
-public/chromium-pack.tar
 .env
 .env.*
 !.env.example
