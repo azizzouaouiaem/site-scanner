@@ -216,10 +216,46 @@ const PERFORMANCE_RULE_MESSAGES: Record<string, BilingualText> = {
   },
 };
 
+const GEO_RULE_MESSAGES: Record<string, BilingualText> = {
+  'geo-ai-crawlers-blocked': {
+    en: "This page can't be found or cited by ChatGPT, Perplexity, Google AI Overviews, or Claude — you're invisible in the fastest-growing search channel.",
+    fr: "Cette page ne peut pas être trouvée ni citée par ChatGPT, Perplexity, Google AI Overviews ou Claude — vous êtes invisible sur le canal de recherche qui croît le plus vite.",
+  },
+  'geo-missing-llms-txt': {
+    en: 'Without a curated llms.txt summary, AI assistants have to guess which parts of the site matter most, increasing the odds they cite a competitor instead.',
+    fr: "Sans résumé llms.txt organisé, les assistants IA doivent deviner quelles parties du site comptent le plus, augmentant le risque qu'ils citent un concurrent à la place.",
+  },
+  'geo-missing-entity-schema': {
+    en: 'AI answers can misattribute this content to the wrong brand, or omit the brand name entirely, when no entity data confirms who is speaking.',
+    fr: "Les réponses IA peuvent attribuer ce contenu à la mauvaise marque, ou omettre le nom de la marque, faute de données d'entité confirmant qui parle.",
+  },
+  'geo-missing-author-date': {
+    en: 'Generative engines downrank undated, unattributed content as a trust signal — a well-written page can be skipped purely for lacking these signals.',
+    fr: "Les moteurs génératifs déclassent le contenu non daté et non attribué comme signal de confiance — une page bien écrite peut être ignorée uniquement pour ce manque.",
+  },
+  'geo-thin-content-for-ai': {
+    en: "There isn't enough text here for an AI assistant to safely summarize or quote — competitors with fuller answers get cited instead.",
+    fr: "Il n'y a pas assez de texte ici pour qu'un assistant IA le résume ou le cite en toute confiance — des concurrents avec des réponses plus complètes seront cités à la place.",
+  },
+  'aeo-missing-faq-schema': {
+    en: 'Answer engines and voice assistants need FAQPage schema to lift a clean question/answer pair verbatim — without it your best answers are much less likely to be quoted.',
+    fr: "Les moteurs de réponse et assistants vocaux ont besoin du schéma FAQPage pour reprendre une paire question/réponse propre — sans cela, vos meilleures réponses ont beaucoup moins de chances d'être citées.",
+  },
+  'aeo-no-question-headings': {
+    en: "Content isn't structured as direct answers to real questions, so answer engines have to paraphrase (and risk getting it wrong) instead of quoting you.",
+    fr: "Le contenu n'est pas structuré comme des réponses directes à de vraies questions, donc les moteurs de réponse doivent paraphraser (au risque de se tromper) plutôt que de vous citer.",
+  },
+  'geo-missing-semantic-landmark': {
+    en: 'Without <main>/<article> landmarks, AI crawlers may scrape navigation links and boilerplate instead of your actual content, producing a garbled or incomplete citation.',
+    fr: "Sans balises <main>/<article>, les robots IA peuvent extraire des liens de navigation et du texte générique plutôt que votre contenu réel, produisant une citation confuse ou incomplète.",
+  },
+};
+
 const MESSAGES_BY_SCAN_TYPE: Record<ScanType, Record<string, BilingualText>> = {
   accessibility: ACCESSIBILITY_RULE_MESSAGES,
   seo: SEO_RULE_MESSAGES,
   performance: PERFORMANCE_RULE_MESSAGES,
+  geo: GEO_RULE_MESSAGES,
 };
 
 function genericBusinessImpact(issue: ScoredIssue, language: Language): string {

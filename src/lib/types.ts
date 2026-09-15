@@ -1,6 +1,6 @@
 export type Language = 'en' | 'fr';
 
-export type ScanType = 'accessibility' | 'seo' | 'performance';
+export type ScanType = 'accessibility' | 'seo' | 'performance' | 'geo';
 
 export type AxeImpact = 'minor' | 'moderate' | 'serious' | 'critical';
 

@@ -1,5 +1,6 @@
-import { scanUrlForAccessibility, scanUrlForPerformance, scanUrlForSeo } from './browser';
+import { scanUrlForAccessibility, scanUrlForGeo, scanUrlForPerformance, scanUrlForSeo } from './browser';
 import { getTopBusinessImpacts } from './business-impact';
+import { buildGeoFindings, GEO_TOTAL_CHECKS } from './geo-audit';
 import { buildPerformanceFindings, PERFORMANCE_TOTAL_CHECKS } from './performance-audit';
 import { buildSeoFindings, SEO_TOTAL_CHECKS } from './seo-audit';
 import { computeScore, computeTotals, countByImpact, scoreAxeResult, scoreFinding } from './scoring';
@@ -58,9 +59,18 @@ async function buildPerformanceReport(url: URL, language: Language): Promise<Sca
   return finalizeReport(url, data.finalUrl, language, 'performance', issues, passedRuleCount, data.screenshotDataUrl);
 }
 
+async function buildGeoReport(url: URL, language: Language): Promise<ScanReport> {
+  const data = await scanUrlForGeo(url);
+  const findings = buildGeoFindings(data);
+  const issues = findings.map(scoreFinding);
+  const passedRuleCount = Math.max(0, GEO_TOTAL_CHECKS - findings.length);
+  return finalizeReport(url, data.finalUrl, language, 'geo', issues, passedRuleCount, data.screenshotDataUrl);
+}
+
 export async function buildScanReport(url: URL, language: Language, scanType: ScanType): Promise<ScanReport> {
   if (scanType === 'seo') return buildSeoReport(url, language);
   if (scanType === 'performance') return buildPerformanceReport(url, language);
+  if (scanType === 'geo') return buildGeoReport(url, language);
   return buildAccessibilityReport(url, language);
 }
 

@@ -75,6 +75,63 @@ export interface PerformancePageData {
   oversizedImages: number;
 }
 
+export interface GeoPageData {
+  finalUrl: string;
+  screenshotDataUrl: string;
+  aiCrawlersBlocked: boolean;
+  hasLlmsTxt: boolean;
+  hasEntitySchema: boolean;
+  hasAuthorDate: boolean;
+  hasFaqSchema: boolean;
+  questionHeadingCount: number;
+  hasSemanticLandmark: boolean;
+  wordCount: number;
+}
+
+// Well-known crawler user-agents used by generative/answer engines to fetch
+// and cite web content. Not exhaustive, but covers the major ones as of 2026.
+const AI_CRAWLER_USER_AGENTS = new Set([
+  'gptbot',
+  'chatgpt-user',
+  'oai-searchbot',
+  'google-extended',
+  'ccbot',
+  'anthropic-ai',
+  'claudebot',
+  'perplexitybot',
+  'applebot-extended',
+  'amazonbot',
+  'bytespider',
+]);
+
+/**
+ * Heuristic robots.txt parser: groups directives by blank-line-separated
+ * blocks (the common convention) and flags a block that targets a known AI
+ * crawler user-agent while disallowing the whole site ("Disallow: /").
+ * Not a full RFC 9309 parser, but sufficient to catch the common pattern of
+ * "block all AI bots" configurations.
+ */
+function isAiCrawlerBlocked(robotsTxt: string): boolean {
+  if (!robotsTxt.trim()) return false;
+  const blocks = robotsTxt.split(/\r?\n\s*\r?\n/);
+  return blocks.some((block) => {
+    const lines = block
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const agents = lines
+      .filter((line) => line.toLowerCase().startsWith('user-agent:'))
+      .map((line) => line.split(':').slice(1).join(':').trim().toLowerCase());
+    const disallows = lines
+      .filter((line) => line.toLowerCase().startsWith('disallow:'))
+      .map((line) => line.split(':').slice(1).join(':').trim());
+    const targetsAiBot = agents.some((agent) => AI_CRAWLER_USER_AGENTS.has(agent));
+    const blocksEverything = disallows.includes('/');
+    return targetsAiBot && blocksEverything;
+  });
+}
+
+
 export class ScanTimeoutError extends Error {}
 export class ScanNavigationError extends Error {}
 
@@ -205,6 +262,58 @@ export async function scanUrlForPerformance(url: URL): Promise<PerformancePageDa
 
     const screenshot = await page.screenshot({ type: 'jpeg', quality: 70, fullPage: false });
     return { finalUrl: page.url(), screenshotDataUrl: `data:image/jpeg;base64,${screenshot.toString('base64')}`, ...data };
+  } finally {
+    await browser.close();
+  }
+}
+
+export async function scanUrlForGeo(url: URL): Promise<GeoPageData> {
+  const { browser, page } = await launchAndNavigate(url);
+
+  try {
+    const data = await page.evaluate(() => {
+      const doc = document;
+      const jsonLdBlocks = Array.from(doc.querySelectorAll('script[type="application/ld+json"]')).map(
+        (el) => el.textContent ?? '',
+      );
+      const hasEntitySchema = jsonLdBlocks.some((block) => /"@type"\s*:\s*"(Organization|WebSite)"/i.test(block));
+      const hasFaqSchema = jsonLdBlocks.some((block) => /"@type"\s*:\s*"FAQPage"/i.test(block));
+      const hasAuthorDate = Boolean(
+        doc.querySelector(
+          'meta[property="article:published_time"], meta[property="article:modified_time"], meta[name="author"], time[datetime]',
+        ),
+      );
+      const questionHeadingCount = Array.from(doc.querySelectorAll('h2, h3')).filter((el) =>
+        (el.textContent ?? '').trim().endsWith('?'),
+      ).length;
+      const hasSemanticLandmark = Boolean(doc.querySelector('main, article'));
+      const wordCount = (doc.body?.innerText ?? '').trim().split(/\s+/).filter(Boolean).length;
+
+      return { hasEntitySchema, hasFaqSchema, hasAuthorDate, questionHeadingCount, hasSemanticLandmark, wordCount };
+    });
+
+    const origin = new URL(page.url()).origin;
+    const requestContext = page.context().request;
+    const [robotsTxt, hasLlmsTxt] = await Promise.all([
+      requestContext
+        .get(`${origin}/robots.txt`, { failOnStatusCode: false, timeout: 8_000 })
+        .then((res) => (res.ok() ? res.text() : ''))
+        .catch(() => ''),
+      requestContext
+        .get(`${origin}/llms.txt`, { failOnStatusCode: false, timeout: 8_000 })
+        .then((res) => res.ok())
+        .catch(() => false),
+    ]);
+
+    const screenshot = await page.screenshot({ type: 'jpeg', quality: 70, fullPage: false });
+
+    return {
+      finalUrl: page.url(),
+      screenshotDataUrl: `data:image/jpeg;base64,${screenshot.toString('base64')}`,
+      aiCrawlersBlocked: isAiCrawlerBlocked(robotsTxt),
+      hasLlmsTxt,
+      ...data,
+    };
   } finally {
     await browser.close();
   }

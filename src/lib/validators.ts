@@ -16,7 +16,7 @@ export const scanRequestSchema = z.object({
     }, 'invalid_url'),
   email: z.string().trim().toLowerCase().email().max(320).optional(),
   language: z.enum(['en', 'fr']),
-  scanType: z.enum(['accessibility', 'seo', 'performance']),
+  scanType: z.enum(['accessibility', 'seo', 'performance', 'geo']),
 });
 
 export type ScanRequestInput = z.infer<typeof scanRequestSchema>;

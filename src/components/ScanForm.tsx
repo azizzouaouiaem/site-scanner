@@ -20,10 +20,14 @@ const ERROR_KEY_BY_CODE: Record<string, keyof ReturnType<typeof t>> = {
   email_not_configured: 'errorEmailNotConfigured',
 };
 
-const SCAN_TYPE_LABEL_KEY: Record<ScanType, 'scanTypeAccessibility' | 'scanTypeSeo' | 'scanTypePerformance'> = {
+const SCAN_TYPE_LABEL_KEY: Record<
+  ScanType,
+  'scanTypeAccessibility' | 'scanTypeSeo' | 'scanTypePerformance' | 'scanTypeGeo'
+> = {
   accessibility: 'scanTypeAccessibility',
   seo: 'scanTypeSeo',
   performance: 'scanTypePerformance',
+  geo: 'scanTypeGeo',
 };
 
 export default function ScanForm() {
@@ -101,7 +105,7 @@ export default function ScanForm() {
                 {strings.scanTypeLabel}
               </span>
               <div role="radiogroup" aria-label={strings.scanTypeLabel} className="flex flex-wrap gap-2">
-                {(['accessibility', 'seo', 'performance'] as const).map((type) => (
+                {(['accessibility', 'seo', 'performance', 'geo'] as const).map((type) => (
                   <label
                     key={type}
                     className={`cursor-pointer rounded-full border px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${
