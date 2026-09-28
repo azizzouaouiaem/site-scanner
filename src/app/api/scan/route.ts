@@ -23,10 +23,10 @@ function getRequesterIp(request: Request): string | null {
   return request.headers.get('x-real-ip');
 }
 
-function emailSubject(language: 'en' | 'fr', scanType: 'accessibility' | 'seo' | 'performance', finalUrl: string): string {
+function emailSubject(language: 'en' | 'fr', scanType: 'accessibility' | 'seo' | 'performance' | 'geo', finalUrl: string): string {
   const labels = {
-    en: { accessibility: 'accessibility', seo: 'SEO', performance: 'performance' },
-    fr: { accessibility: "d'accessibilité", seo: 'SEO', performance: 'de performance' },
+    en: { accessibility: 'accessibility', seo: 'SEO', performance: 'performance', geo: 'GEO/AEO' },
+    fr: { accessibility: "d'accessibilité", seo: 'SEO', performance: 'de performance', geo: 'GEO/AEO' },
   } as const;
   return language === 'fr'
     ? `Votre rapport ${labels.fr[scanType]} pour ${finalUrl}`
