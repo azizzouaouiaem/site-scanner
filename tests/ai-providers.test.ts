@@ -13,6 +13,8 @@ import {
   recommend,
 } from "../src/lib/commerce/recommendations";
 import { readiness } from "../src/lib/commerce/billing";
+import { checkCursorAuth } from "../src/lib/commerce/cursor";
+import { GET, POST } from "../src/app/api/admin/services/route";
 import type { ScanReport } from "../src/lib/types";
 
 const id = "seo:missing-title";
@@ -49,6 +51,52 @@ const runId = "run-00000000-0000-0000-0000-000000000001";
 const ticket = { agentId, runId, deadline: Date.now() + 600000 };
 const json = (value: unknown, status = 200) =>
   new Response(JSON.stringify(value), { status });
+
+test("service diagnostics reject unauthenticated reads and agent starts before any provider call", async (t) => {
+  const originalEnv = process.env;
+  t.after(() => {
+    process.env = originalEnv;
+  });
+  process.env = { SERVICE_CHECK_TOKEN: "fixture-service-token" };
+  const mock = t.mock.method(globalThis, "fetch", async () => {
+    throw Error("must_not_call_provider");
+  });
+  assert.equal(
+    (await GET(new Request("https://example.com/api/admin/services"))).status,
+    401,
+  );
+  assert.equal(
+    (
+      await POST(
+        new Request("https://example.com/api/admin/services", {
+          method: "POST",
+          body: '{"action":"cursor-start"}',
+        }),
+      )
+    ).status,
+    401,
+  );
+  assert.equal(mock.mock.callCount(), 0);
+});
+
+test("Cursor credential probe is read-only and reports no account identity or secrets", async (t) => {
+  const originalEnv = process.env;
+  t.after(() => {
+    process.env = originalEnv;
+  });
+  process.env = { CURSOR_API_KEY: "fixture-cursor-key" };
+  let calls = 0;
+  t.mock.method(globalThis, "fetch", async (url: string, init: RequestInit) => {
+    calls++;
+    assert.equal(url, "https://api.cursor.com/v1/me");
+    assert.equal(init.method, "GET");
+    return calls === 1
+      ? json({ apiKeyName: "sitescanner", userEmail: "private@example.com" })
+      : json({}, 401);
+  });
+  assert.equal(await checkCursorAuth(), "connected");
+  assert.equal(await checkCursorAuth(), "failed");
+});
 
 test("Cursor routing selects a valid result first, waits durably, then cleans up without calling fallback", async () => {
   const calls: string[] = [];

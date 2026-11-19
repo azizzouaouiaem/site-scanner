@@ -146,6 +146,13 @@ was verified separately on 2026-11-19 (7 scanner tables with RLS).
 
 Private service diagnostics: `/api/admin/services` requires the generated
 SERVICE_CHECK_TOKEN bearer secret and returns bounded status fields only.
+GET also checks Cursor authentication via GET /v1/me without starting an agent.
+Authenticated POST supports `cursor-start`, `cursor-poll` and `cursor-close` for an
+explicit one-finding synthetic smoke test (no purchase, customer data or email).
+The returned ticket is signed; pass it back in the `ticket` field when polling or
+closing. Starts are rate-limited and reuse an agent within the same hour. A completed
+test returns validated French recommendations, labelled `fixture:true`, and archives
+the agent. A real provider request consumes the Cursor account's usage.
 It can validate schema/RLS and the Stripe connection on Vercel without exporting
 production secrets locally. `scripts/check-services.ts` is a local convenience,
 but Vercel sensitive production variables are intentionally unavailable locally.
