@@ -19,6 +19,55 @@ export async function checkCursorAuth() {
 }
 const agentIdSchema = z.string().regex(/^bc-[a-f0-9-]{36}$/i);
 const runIdSchema = z.string().regex(/^run-[a-z0-9-]{1,100}$/i);
+export class CursorApiError extends Error {
+  constructor(
+    status: number,
+    readonly reason?: string,
+  ) {
+    super(`cursor_http_${status}`);
+  }
+}
+function errorReason(value: unknown) {
+  const data = value as {
+    code?: unknown;
+    error?: unknown;
+    message?: unknown;
+  } | null;
+  const nested = data?.error as { code?: unknown; message?: unknown } | null;
+  const codes = [data?.code, nested?.code, data?.error];
+  const known = new Set([
+    "storage_not_allowed",
+    "plan_required",
+    "feature_unavailable",
+    "repository_access",
+    "billing_required",
+    "cloud_agents_disabled",
+    "background_agents_disabled",
+    "spending_limit_exceeded",
+    "usage_limit_exceeded",
+    "model_not_allowed",
+    "insufficient_scope",
+    "on_demand_not_enabled",
+    "privacy_mode_enabled",
+  ]);
+  for (const code of codes)
+    if (typeof code === "string" && known.has(code)) return code;
+  // Classify other provider messages in memory; never return their text.
+  const text = [
+    data?.message,
+    nested?.message,
+    typeof data?.error === "string" ? data.error : undefined,
+  ]
+    .filter((v) => typeof v === "string")
+    .join(" ")
+    .toLowerCase();
+  if (/privacy|storage/.test(text)) return "privacy_or_storage";
+  if (/spend|billing|payment|on.demand/.test(text)) return "billing_or_usage";
+  if (/subscription|paid plan|pro plan/.test(text))
+    return "subscription_required";
+  if (/permission|scope|access|enable/.test(text)) return "account_access";
+  return undefined;
+}
 export interface CursorTicket {
   agentId: string;
   runId: string;
@@ -43,11 +92,19 @@ async function request(path: string, method = "GET", body?: unknown) {
     signal: AbortSignal.timeout(20000),
     redirect: "error",
   });
-  // Never put provider responses, prompts or credentials in error messages.
-  if (!response.ok) {
-    await response.body?.cancel();
-    throw new Error(`cursor_http_${response.status}`);
+  let value: unknown;
+  try {
+    value = await readResponse(response);
+  } catch {
+    if (!response.ok) throw new CursorApiError(response.status);
+    throw new Error("cursor_invalid_response");
   }
+  // Only an allowlisted code/category leaves the server, never provider text.
+  if (!response.ok)
+    throw new CursorApiError(response.status, errorReason(value));
+  return value;
+}
+async function readResponse(response: Response) {
   const reader = response.body?.getReader();
   if (!reader) throw new Error("cursor_empty_response");
   const chunks: Uint8Array[] = [];

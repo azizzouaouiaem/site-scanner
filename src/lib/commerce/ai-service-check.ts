@@ -63,7 +63,7 @@ export async function aiServiceCheck(input: unknown) {
     .parse(input);
   if (body.action === "cursor-start") {
     const { limit } = await import("./store");
-    await limit("admin:cursor-service-check", 2);
+    await limit("admin:cursor-service-check", 4);
     const ticket = await launchCursor(
       reports,
       ids,

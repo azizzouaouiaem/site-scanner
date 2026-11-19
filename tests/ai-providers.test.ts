@@ -13,7 +13,7 @@ import {
   recommend,
 } from "../src/lib/commerce/recommendations";
 import { readiness } from "../src/lib/commerce/billing";
-import { checkCursorAuth } from "../src/lib/commerce/cursor";
+import { checkCursorAuth, CursorApiError } from "../src/lib/commerce/cursor";
 import { GET, POST } from "../src/app/api/admin/services/route";
 import type { ScanReport } from "../src/lib/types";
 
@@ -286,6 +286,33 @@ test("Cursor retry recovers a conflict and refuses failed/mismatched/timed-out r
     /cursor_timeout/,
   );
   assert.equal(fetches, 5);
+});
+
+test("Cursor account restrictions expose only an allowlisted reason, never provider text or secrets", async (t) => {
+  const originalEnv = process.env;
+  t.after(() => {
+    process.env = originalEnv;
+  });
+  process.env = { CURSOR_API_KEY: "cursor-fixture" };
+  t.mock.method(globalThis, "fetch", async () =>
+    json(
+      { error: "storage_not_allowed", message: "private-provider-details" },
+      403,
+    ),
+  );
+  await assert.rejects(
+    () => launchCursor(reports, [id], "fixture", 0),
+    (error: unknown) => {
+      assert(error instanceof CursorApiError);
+      assert.equal(error.message, "cursor_http_403");
+      assert.equal(error.reason, "storage_not_allowed");
+      assert.equal(
+        JSON.stringify(error).includes("private-provider-details"),
+        false,
+      );
+      return true;
+    },
+  );
 });
 
 test("existing OpenAI-compatible fallback remains usable and validates exact finding coverage", async (t) => {
