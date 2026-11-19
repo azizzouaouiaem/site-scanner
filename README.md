@@ -125,3 +125,9 @@ limits and usage in Vercel before scaling; no hosting-plan upgrade is performed 
 Provider credentials were not available during initial implementation; no real Stripe
 transaction, provider model call, production Supabase migration or scheduled paid run
 should be considered verified until these steps have succeeded.
+
+Private service diagnostics: `/api/admin/services` requires the generated
+SERVICE_CHECK_TOKEN bearer secret and returns bounded status fields only.
+It can validate schema/RLS and the Stripe connection on Vercel without exporting
+production secrets locally. `scripts/check-services.ts` is a local convenience,
+but Vercel sensitive production variables are intentionally unavailable locally.

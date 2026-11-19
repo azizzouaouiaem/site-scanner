@@ -2,7 +2,10 @@ import Stripe from "stripe";
 import { origin } from "./auth";
 export function stripe() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("payment_not_ready");
-  return new Stripe(process.env.STRIPE_SECRET_KEY);
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    timeout: 20000,
+    maxNetworkRetries: 1,
+  });
 }
 export function readiness(kind: "site" | "pdf") {
   return Boolean(
