@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { ScanReport } from "../types";
-import { recommendationPrompt, validateAdvice } from "./recommendations";
+import { recommendationPrompt, validateAdvice } from "./advice-contract";
 
 // Cursor v1 supports no-repository agents and terminal run results.
 // https://cursor.com/docs/cloud-agent/api/endpoints

@@ -57,10 +57,22 @@ function decode(token: string) {
 export async function aiServiceCheck(input: unknown) {
   const body = z
     .object({
-      action: z.enum(["cursor-start", "cursor-poll", "cursor-close"]),
+      action: z.enum([
+        "cursor-start",
+        "cursor-poll",
+        "cursor-close",
+        "copilot-test",
+      ]),
       ticket: z.string().max(2000).optional(),
     })
     .parse(input);
+  if (body.action === "copilot-test") {
+    const { limit } = await import("./store");
+    await limit("admin:copilot-service-check", 4);
+    const { recommendCopilot } = await import("./copilot");
+    const advice = await recommendCopilot(reports, ids);
+    return { status: "validated", provider: "copilot", fixture: true, advice };
+  }
   if (body.action === "cursor-start") {
     const { limit } = await import("./store");
     await limit("admin:cursor-service-check", 4);

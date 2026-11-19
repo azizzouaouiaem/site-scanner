@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { origin } from "./auth";
 import { cursorConfigured } from "./cursor";
-import { fallbackConfigured } from "./recommendations";
+import { fallbackConfigured, copilotConfigured } from "./ai-config";
 export function stripe() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("payment_not_ready");
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -18,7 +18,10 @@ export function readiness(kind: "site" | "pdf") {
     process.env.STRIPE_WEBHOOK_SECRET &&
     process.env.RESEND_API_KEY &&
     process.env.RESEND_FROM_EMAIL &&
-    (kind !== "pdf" || cursorConfigured() || fallbackConfigured()),
+    (kind !== "pdf" ||
+      cursorConfigured() ||
+      copilotConfigured() ||
+      fallbackConfigured()),
   );
 }
 export const products = {

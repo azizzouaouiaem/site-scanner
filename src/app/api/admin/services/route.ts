@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { checkServices } from "@/lib/commerce/check-services";
 import { CursorApiError } from "@/lib/commerce/cursor";
-export const maxDuration = 60;
+export const maxDuration = 180;
 function authorized(request: Request) {
   const expected = Buffer.from("Bearer " + process.env.SERVICE_CHECK_TOKEN);
   const actual = Buffer.from(request.headers.get("authorization") ?? "");
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "request_failed";
     const safe =
-      /^(cursor_[a-z_]+(?:_\d{3})?|incomplete_ai_report|invalid_input|rate_limited)$/.test(
+      /^(cursor_[a-z_]+(?:_\d{3})?|copilot_[a-z_]+|incomplete_ai_report|invalid_input|rate_limited)$/.test(
         message,
       )
         ? message

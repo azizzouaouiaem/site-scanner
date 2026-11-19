@@ -10,7 +10,7 @@ import {
 } from "../src/lib/commerce/cursor";
 import {
   fallbackConfigured,
-  recommend,
+  recommendOpenAi as recommend,
 } from "../src/lib/commerce/recommendations";
 import { readiness } from "../src/lib/commerce/billing";
 import { checkCursorAuth, CursorApiError } from "../src/lib/commerce/cursor";
@@ -57,7 +57,10 @@ test("service diagnostics reject unauthenticated reads and agent starts before a
   t.after(() => {
     process.env = originalEnv;
   });
-  process.env = { SERVICE_CHECK_TOKEN: "fixture-service-token" };
+  process.env = {
+    SERVICE_CHECK_TOKEN: "fixture-service-token",
+    NODE_ENV: "test",
+  };
   const mock = t.mock.method(globalThis, "fetch", async () => {
     throw Error("must_not_call_provider");
   });
@@ -84,7 +87,7 @@ test("Cursor credential probe is read-only and reports no account identity or se
   t.after(() => {
     process.env = originalEnv;
   });
-  process.env = { CURSOR_API_KEY: "fixture-cursor-key" };
+  process.env = { CURSOR_API_KEY: "fixture-cursor-key", NODE_ENV: "test" };
   let calls = 0;
   t.mock.method(globalThis, "fetch", async (url: string, init: RequestInit) => {
     calls++;
@@ -198,6 +201,7 @@ test("Cursor v1 uses Basic auth, no repository/secrets, stable idempotency and a
     ...process.env,
     CURSOR_API_KEY: "cursor-fixture",
     CURSOR_MODEL: "",
+    NODE_ENV: "test",
   };
   const calls: { url: string; init?: RequestInit }[] = [];
   const responses = [
@@ -252,7 +256,11 @@ test("Cursor retry recovers a conflict and refuses failed/mismatched/timed-out r
   t.after(() => {
     process.env = originalEnv;
   });
-  process.env = { ...process.env, CURSOR_API_KEY: "cursor-fixture" };
+  process.env = {
+    ...process.env,
+    CURSOR_API_KEY: "cursor-fixture",
+    NODE_ENV: "test",
+  };
   const responses = [
     json({}, 409),
     json({
@@ -293,7 +301,7 @@ test("Cursor account restrictions expose only an allowlisted reason, never provi
   t.after(() => {
     process.env = originalEnv;
   });
-  process.env = { CURSOR_API_KEY: "cursor-fixture" };
+  process.env = { CURSOR_API_KEY: "cursor-fixture", NODE_ENV: "test" };
   t.mock.method(globalThis, "fetch", async () =>
     json(
       { error: "storage_not_allowed", message: "private-provider-details" },
@@ -325,6 +333,7 @@ test("existing OpenAI-compatible fallback remains usable and validates exact fin
     REPORT_LLM_API_KEY: "fallback-fixture",
     REPORT_LLM_MODEL: "model-fixture",
     REPORT_LLM_URL: "https://api.openai.com/v1/chat/completions",
+    NODE_ENV: "test",
   };
   assert(fallbackConfigured());
   let body: Record<string, unknown> = {};
@@ -361,6 +370,7 @@ test("PDF readiness accepts Cursor or the fallback while preserving the payments
     STRIPE_WEBHOOK_SECRET: "fixture",
     RESEND_API_KEY: "fixture",
     RESEND_FROM_EMAIL: "fixture",
+    NODE_ENV: "test",
   };
   assert.equal(readiness("pdf"), false);
   process.env.CURSOR_API_KEY = "cursor-fixture";

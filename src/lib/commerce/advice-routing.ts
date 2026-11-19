@@ -29,3 +29,16 @@ export async function cursorFirst<T>(operations: {
   }
   if (!complete) await operations.fallback();
 }
+export async function copilotThenOpenAi<T>(
+  copilot: (() => Promise<T>) | null,
+  openAi: () => Promise<T>,
+) {
+  if (copilot) {
+    try {
+      return { ...(await copilot()), provider: "copilot" };
+    } catch {
+      /* Invalid or failed Copilot responses select the configured final fallback. */
+    }
+  }
+  return { ...(await openAi()), provider: "openai-compatible" };
+}

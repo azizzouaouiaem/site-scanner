@@ -11,6 +11,7 @@
     "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
+    "@microsoft/copilot-sdk": "2.0.1",
     "@neondatabase/serverless": "^0.10.4",
     "@sparticuz/chromium-min": "152.0.0",
     "@vercel/analytics": "^2.0.1",

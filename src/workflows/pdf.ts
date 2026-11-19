@@ -14,7 +14,7 @@ export async function pdfWorkflow(orderId: string) {
         pause: () => sleep("20s"),
         close: (ticket) => closeCursorOrder(ticket),
         fallback: async () => {
-          console.log("pdf_openai_fallback", orderId);
+          console.log("pdf_secondary_providers", orderId);
           for (let offset = 0; offset < ids.length; offset += 6)
             await adviseOrder(orderId, ids.slice(offset, offset + 6));
         },
@@ -28,7 +28,7 @@ async function startCursorOrder(id: string) {
   "use step";
   const { sql } = await import("@/lib/commerce/store");
   const { launchCursor } = await import("@/lib/commerce/cursor");
-  const { evidence } = await import("@/lib/commerce/recommendations");
+  const { evidence } = await import("@/lib/commerce/advice-contract");
   const rows =
     await sql()`SELECT reports,advice,attempt FROM scanner_orders WHERE id=${id} AND status='processing'`;
   const row = rows[0];
@@ -45,7 +45,7 @@ async function checkCursorOrder(id: string, ticket: CursorTicket) {
   "use step";
   const { sql } = await import("@/lib/commerce/store");
   const { pollCursor } = await import("@/lib/commerce/cursor");
-  const { evidence } = await import("@/lib/commerce/recommendations");
+  const { evidence } = await import("@/lib/commerce/advice-contract");
   const rows =
     await sql()`SELECT reports,advice FROM scanner_orders WHERE id=${id} AND status='processing'`;
   const row = rows[0];
@@ -73,7 +73,7 @@ async function auditOrder(id: string) {
   const { schema, sql } = await import("@/lib/commerce/store");
   await schema();
   const { auditPage } = await import("@/lib/commerce/audit");
-  const { evidence } = await import("@/lib/commerce/recommendations");
+  const { evidence } = await import("@/lib/commerce/advice-contract");
   const rows =
     await sql()`SELECT * FROM scanner_orders WHERE id=${id} AND kind='pdf' AND status IN ('paid','queued','processing','ready')`;
   const row = rows[0];
@@ -102,15 +102,16 @@ async function adviseOrder(id: string, ids: string[]) {
   );
   if (!remaining.length) return;
   const advice = await recommend(row.reports, remaining);
-  await sql()`UPDATE scanner_orders SET advice=${sql().json({ items: [...prior, ...advice.items], provider: "openai-compatible" })} WHERE id=${id} AND status='processing'`;
+  await sql()`UPDATE scanner_orders SET advice=${sql().json({ items: [...prior, ...advice.items], provider: advice.provider })} WHERE id=${id} AND status='processing'`;
   console.log("pdf_recommendations_saved", id, remaining.length);
 }
+adviseOrder.maxRetries = 1;
 async function finishPdf(id: string) {
   "use step";
   const { sql } = await import("@/lib/commerce/store");
   const { renderPdf, technicalHtml } = await import("@/lib/commerce/pdf");
   const { evidence, validateAdvice } =
-    await import("@/lib/commerce/recommendations");
+    await import("@/lib/commerce/advice-contract");
   const { mail, escape } = await import("@/lib/commerce/mail");
   const { origin } = await import("@/lib/commerce/auth");
   const rows =

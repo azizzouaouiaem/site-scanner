@@ -4,7 +4,7 @@ import { sql, schema } from "./store";
 import { stripe } from "./billing";
 import { origin } from "./auth";
 import { cursorConfigured, checkCursorAuth } from "./cursor";
-import { fallbackConfigured } from "./recommendations";
+import { fallbackConfigured, copilotConfigured } from "./ai-config";
 export async function checkServices() {
   const result: Record<string, unknown> = {};
   const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
@@ -63,7 +63,18 @@ export async function checkServices() {
   result.cursorModel = process.env.CURSOR_MODEL
     ? "configured"
     : "account_default";
-  result.aiPrimary = cursorConfigured() ? "cursor-agents" : "openai-compatible";
+  result.copilotKey = copilotConfigured() ? "configured" : "missing";
+  result.copilotModel = process.env.COPILOT_MODEL ? "configured" : "auto";
+  result.aiPrimary = cursorConfigured()
+    ? "cursor-agents"
+    : copilotConfigured()
+      ? "copilot"
+      : "openai-compatible";
+  result.aiOrder = [
+    cursorConfigured() ? "cursor-agents" : null,
+    copilotConfigured() ? "copilot" : null,
+    fallbackConfigured() ? "openai-compatible" : null,
+  ].filter(Boolean);
   result.aiFallback = fallbackConfigured() ? "configured" : "missing";
   return result;
 }

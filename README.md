@@ -30,6 +30,8 @@ Do not put them in chat, source control or NEXT_PUBLIC variables.
 | CRON_SECRET | Random server secret protecting the daily dispatcher |
 | CURSOR_API_KEY | Cursor Dashboard API key, stored as a Production Secret; preferred report provider |
 | CURSOR_MODEL | Optional ID from Cursor GET /v1/models; omit to use the account default (not the key's label) |
+| COPILOT_GITHUB_TOKEN | Fine-grained GitHub token for the Copilot subscription, with Copilot requests permission; Production Secret |
+| COPILOT_MODEL | Optional Copilot model ID; defaults to auto |
 | REPORT_LLM_URL | HTTPS OpenAI-compatible chat-completions endpoint for automatic fallback |
 | REPORT_LLM_API_KEY | Fallback provider server API key, separate from the Cursor key |
 | REPORT_LLM_MODEL | Model identifier supporting JSON-object output and max_completion_tokens |
@@ -46,10 +48,20 @@ The agent ID is deterministic per order attempt, so a retry recovers the existin
 after a lost response instead of starting another charged agent. Workflow sleeps between
 status checks without holding a function open. After 10 minutes, an API failure, a failed
 run or invalid/incomplete JSON, the application attempts cancellation/archive and uses
-the existing REPORT_LLM_* provider in batches of six findings. Completed agents are also
+Copilot, then the existing REPORT_LLM_* provider, in batches of six findings. Completed agents are also
 archived. Provider failure cannot fabricate a successful PDF or change its scores.
-If Cursor credentials are absent, the configured fallback is used directly. If both
-providers fail or the fallback is missing, the order fails and can be retried from the
+Copilot uses the pinned @microsoft/copilot-sdk with its bundled native runtime. It runs
+as a child process in an empty temporary directory: mode empty, no available tools,
+all permission requests denied, no configuration discovery, skills or cross-session
+store, and no inherited app credentials. Only its explicit GitHub token is supplied by
+the SDK. Both the runtime and temporary files are cleaned up after each batch. Each
+call is bounded to 120 seconds (model reply 90 seconds), with no runtime download or
+interactive login. Linux runtime files are explicitly included in Vercel tracing;
+unused browser/computer plugins and code search binaries are excluded. SDK v2 replaces
+the deprecated @github/copilot-sdk package. Usage is charged to the configured Copilot
+account. See [Copilot SDK](https://github.com/microsoft/copilot-sdk).
+If Cursor credentials are absent, the next configured provider is used directly. If all
+providers fail or are unavailable, the order fails and can be retried from the
 account without another payment. No findings means no AI request.
 See [Cursor v1 reference](https://cursor.com/docs/cloud-agent/api/endpoints).
 The customer purchases a report based on observed findings, not source-repository
@@ -153,6 +165,9 @@ The returned ticket is signed; pass it back in the `ticket` field when polling o
 closing. Starts are rate-limited and reuse an agent within the same hour. A completed
 test returns validated French recommendations, labelled `fixture:true`, and archives
 the agent. A real provider request consumes the Cursor account's usage.
+POST `copilot-test` performs the same one-finding synthetic check through Copilot,
+with no payment, email or customer data. It returns validated recommendations and
+stops the runtime. It consumes Copilot usage and is rate-limited separately.
 It can validate schema/RLS and the Stripe connection on Vercel without exporting
 production secrets locally. `scripts/check-services.ts` is a local convenience,
 but Vercel sensitive production variables are intentionally unavailable locally.
