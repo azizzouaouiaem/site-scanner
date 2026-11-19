@@ -8,7 +8,12 @@ export async function POST(request: Request) {
   try {
     sameOrigin(request);
     const input = z
-      .object({ email: z.string().trim().email().max(320) })
+      .object({
+        email: z.string().trim().email().max(320),
+        url: z.string().max(2048).optional(),
+        kind: z.enum(["site", "pdf"]).optional(),
+        language: z.enum(["fr", "en"]).optional(),
+      })
       .safeParse(await request.json());
     if (!input.success) throw new Error("invalid_input");
     const email = input.data.email.toLowerCase();
@@ -27,7 +32,13 @@ export async function POST(request: Request) {
     const token = newToken();
     await sql()`INSERT INTO scanner_tokens(hash,user_id,kind,expires_at) VALUES (${hash(token)},${rows[0]!.id},'login',now()+interval '15 minutes')`;
     // A GET never consumes the token: email security scanners can safely follow it.
-    const url = origin() + "/account?token=" + token;
+    const parameters = new URLSearchParams({
+      token,
+      kind: input.data.kind ?? "site",
+      language: input.data.language ?? "fr",
+    });
+    if (input.data.url) parameters.set("url", input.data.url);
+    const url = origin() + "/account?" + parameters.toString();
     await mail(
       email,
       "Site Scanner — votre lien de connexion / sign in",

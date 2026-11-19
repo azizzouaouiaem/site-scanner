@@ -172,12 +172,15 @@ export default function Account({
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                void action("/api/auth/link", { email }, () =>
-                  setMessage(
-                    fr
-                      ? "Consultez votre courriel ; le lien est valable 15 minutes."
-                      : "Check your email; the link expires in 15 minutes.",
-                  ),
+                void action(
+                  "/api/auth/link",
+                  { email, url, kind, language },
+                  () =>
+                    setMessage(
+                      fr
+                        ? "Consultez votre courriel ; le lien est valable 15 minutes."
+                        : "Check your email; the link expires in 15 minutes.",
+                    ),
                 );
               }}
               className="space-y-4"
