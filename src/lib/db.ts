@@ -1,13 +1,7 @@
-import { neon } from '@neondatabase/serverless';
-import type { Language, ScanReport, ScanType } from './types';
+import { sql as database } from "./commerce/store";
+import type { Language, ScanReport, ScanType } from "./types";
 
-function getSql() {
-  const connectionString = process.env.POSTGRES_URL ?? process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error('db_not_configured');
-  }
-  return neon(connectionString);
-}
+const getSql = database;
 
 let schemaEnsured = false;
 
@@ -33,10 +27,15 @@ async function ensureSchema(): Promise<void> {
   await sql`ALTER TABLE scans ADD COLUMN IF NOT EXISTS scan_type TEXT NOT NULL DEFAULT 'accessibility';`;
   await sql`CREATE INDEX IF NOT EXISTS scans_email_idx ON scans (email);`;
   await sql`CREATE INDEX IF NOT EXISTS scans_created_at_idx ON scans (created_at);`;
+  await sql`ALTER TABLE scans ENABLE ROW LEVEL SECURITY`;
   schemaEnsured = true;
 }
 
-export async function recordScan(report: ScanReport, email: string | null, requesterIp: string | null): Promise<void> {
+export async function recordScan(
+  report: ScanReport,
+  email: string | null,
+  requesterIp: string | null,
+): Promise<void> {
   await ensureSchema();
   const sql = getSql();
   await sql`
@@ -50,24 +49,30 @@ export async function recordScan(report: ScanReport, email: string | null, reque
  * within a rolling window. This is a heuristic, not a substitute for real
  * auth — see README for suggested follow-ups (email verification, captcha).
  */
-export async function countRecentScansByEmail(email: string, windowMinutes: number): Promise<number> {
+export async function countRecentScansByEmail(
+  email: string,
+  windowMinutes: number,
+): Promise<number> {
   await ensureSchema();
   const sql = getSql();
   const rows = (await sql`
     SELECT COUNT(*)::text AS count FROM scans
     WHERE email = ${email} AND created_at > now() - (${windowMinutes} || ' minutes')::interval
   `) as Array<{ count: string }>;
-  return Number(rows[0]?.count ?? '0');
+  return Number(rows[0]?.count ?? "0");
 }
 
-export async function countRecentScansByIp(requesterIp: string, windowMinutes: number): Promise<number> {
+export async function countRecentScansByIp(
+  requesterIp: string,
+  windowMinutes: number,
+): Promise<number> {
   await ensureSchema();
   const sql = getSql();
   const rows = (await sql`
     SELECT COUNT(*)::text AS count FROM scans
     WHERE requester_ip = ${requesterIp} AND created_at > now() - (${windowMinutes} || ' minutes')::interval
   `) as Array<{ count: string }>;
-  return Number(rows[0]?.count ?? '0');
+  return Number(rows[0]?.count ?? "0");
 }
 
 export interface ScanListRow {

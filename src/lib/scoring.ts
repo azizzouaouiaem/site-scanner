@@ -1,4 +1,4 @@
-import type { AxeImpact, RawAxeResult, RawFinding, ScoredIssue } from './types';
+import type { AxeImpact, RawAxeResult, RawFinding, ScoredIssue } from "./types";
 
 /**
  * Deterministic, heuristic time estimation — no LLM call involved.
@@ -37,7 +37,7 @@ const AUTOMATION_TIME_FACTOR = 0.25;
 const WCAG_TAG_PATTERN = /^wcag(\d)(\d)(\d?)a{0,3}$/i;
 
 function impactOrDefault(impact: AxeImpact | null): AxeImpact {
-  return impact ?? 'moderate';
+  return impact ?? "moderate";
 }
 
 function extractWcagCriteria(tags: string[]): string[] {
@@ -46,13 +46,20 @@ function extractWcagCriteria(tags: string[]): string[] {
     const match = WCAG_TAG_PATTERN.exec(tag);
     if (match) {
       const [, major, minor, criterionDigit] = match;
-      criteria.add(criterionDigit ? `${major}.${minor}.${criterionDigit}` : `WCAG ${major}.${minor}`);
+      criteria.add(
+        criterionDigit
+          ? `${major}.${minor}.${criterionDigit}`
+          : `WCAG ${major}.${minor}`,
+      );
     }
   }
   return Array.from(criteria).sort((a, b) => a.localeCompare(b));
 }
 
-function manualMinutesForOccurrences(impact: AxeImpact, occurrences: number): number {
+function manualMinutesForOccurrences(
+  impact: AxeImpact,
+  occurrences: number,
+): number {
   const base = BASE_MANUAL_MINUTES_BY_IMPACT[impact];
   const repeat = REPEAT_MANUAL_MINUTES_BY_IMPACT[impact];
   return base + Math.max(0, occurrences - 1) * repeat;
@@ -61,8 +68,12 @@ function manualMinutesForOccurrences(impact: AxeImpact, occurrences: number): nu
 export function scoreAxeResult(result: RawAxeResult): ScoredIssue {
   const impact = impactOrDefault(result.impact);
   const occurrences = result.nodes.length || 1;
-  const manualFixMinutes = Math.round(manualMinutesForOccurrences(impact, occurrences));
-  const automatedFixMinutes = Math.round(manualFixMinutes * AUTOMATION_TIME_FACTOR);
+  const manualFixMinutes = Math.round(
+    manualMinutesForOccurrences(impact, occurrences),
+  );
+  const automatedFixMinutes = Math.round(
+    manualFixMinutes * AUTOMATION_TIME_FACTOR,
+  );
 
   return {
     ruleId: result.id,
@@ -72,7 +83,9 @@ export function scoreAxeResult(result: RawAxeResult): ScoredIssue {
     helpUrl: result.helpUrl,
     wcagCriteria: extractWcagCriteria(result.tags),
     occurrences,
-    sampleTargets: result.nodes.slice(0, 3).map((node) => node.target.join(' ')),
+    sampleTargets: result.nodes
+      .slice(0, 3)
+      .map((node) => node.target.join(" ")),
     manualFixMinutes,
     automatedFixMinutes,
   };
@@ -84,16 +97,21 @@ export function scoreAxeResult(result: RawAxeResult): ScoredIssue {
  * shape but produce the same RawFinding fields directly.
  */
 export function scoreFinding(finding: RawFinding): ScoredIssue {
-  const occurrences = finding.occurrences && finding.occurrences > 0 ? finding.occurrences : 1;
-  const manualFixMinutes = Math.round(manualMinutesForOccurrences(finding.impact, occurrences));
-  const automatedFixMinutes = Math.round(manualFixMinutes * AUTOMATION_TIME_FACTOR);
+  const occurrences =
+    finding.occurrences && finding.occurrences > 0 ? finding.occurrences : 1;
+  const manualFixMinutes = Math.round(
+    manualMinutesForOccurrences(finding.impact, occurrences),
+  );
+  const automatedFixMinutes = Math.round(
+    manualFixMinutes * AUTOMATION_TIME_FACTOR,
+  );
 
   return {
     ruleId: finding.id,
     impact: finding.impact,
     help: finding.help,
     description: finding.description,
-    helpUrl: finding.helpUrl ?? '',
+    helpUrl: finding.helpUrl ?? "",
     wcagCriteria: finding.wcagCriteria ?? [],
     occurrences,
     sampleTargets: finding.sampleTargets ?? [],
@@ -118,13 +136,19 @@ const IMPACT_WEIGHT: Record<AxeImpact, number> = {
  * favour. This is a readability heuristic, not an official WCAG/Lighthouse
  * metric, so it will not exactly match Lighthouse's accessibility score.
  */
-export function computeScore(issues: ScoredIssue[], passedRuleCount: number): number {
-  if (issues.length === 0) return 100;
+export function computeScore(
+  issues: ScoredIssue[],
+  passedRuleCount: number,
+): number {
+  if (!Number.isFinite(passedRuleCount) || passedRuleCount < 0)
+    throw new Error("invalid_pass_count");
+  if (issues.length === 0) return passedRuleCount > 0 ? 100 : 0;
 
   let failedWeight = 0;
   for (const issue of issues) {
     const weight = IMPACT_WEIGHT[issue.impact];
-    const repeatBonus = weight * Math.min(issue.occurrences - 1, 9) * 0.05;
+    const repeatBonus =
+      weight * Math.min(Math.max(issue.occurrences - 1, 0), 9) * 0.05;
     failedWeight += weight + repeatBonus;
   }
 
@@ -133,14 +157,30 @@ export function computeScore(issues: ScoredIssue[], passedRuleCount: number): nu
   return Math.round((100 * passedRuleCount) / total);
 }
 
-export function computeTotals(issues: ScoredIssue[]): { manualMinutes: number; automatedMinutes: number } {
-  const manualMinutes = issues.reduce((sum, issue) => sum + issue.manualFixMinutes, 0);
-  const automatedMinutes = issues.reduce((sum, issue) => sum + issue.automatedFixMinutes, 0);
+export function computeTotals(issues: ScoredIssue[]): {
+  manualMinutes: number;
+  automatedMinutes: number;
+} {
+  const manualMinutes = issues.reduce(
+    (sum, issue) => sum + issue.manualFixMinutes,
+    0,
+  );
+  const automatedMinutes = issues.reduce(
+    (sum, issue) => sum + issue.automatedFixMinutes,
+    0,
+  );
   return { manualMinutes, automatedMinutes };
 }
 
-export function countByImpact(issues: ScoredIssue[]): Record<AxeImpact, number> {
-  const counts: Record<AxeImpact, number> = { critical: 0, serious: 0, moderate: 0, minor: 0 };
+export function countByImpact(
+  issues: ScoredIssue[],
+): Record<AxeImpact, number> {
+  const counts: Record<AxeImpact, number> = {
+    critical: 0,
+    serious: 0,
+    moderate: 0,
+    minor: 0,
+  };
   for (const issue of issues) {
     counts[issue.impact] += issue.occurrences;
   }

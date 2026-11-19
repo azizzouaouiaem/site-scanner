@@ -1,5 +1,5 @@
-import type { PerformancePageData } from './browser';
-import type { RawFinding } from './types';
+import type { PerformancePageData } from "./browser";
+import type { RawFinding } from "./types";
 
 /**
  * Deterministic performance checks built from Navigation/Resource Timing
@@ -20,85 +20,98 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1_000_000).toFixed(1)} MB`;
 }
 
-export function buildPerformanceFindings(data: PerformancePageData): RawFinding[] {
+export function buildPerformanceFindings(
+  data: PerformancePageData,
+): RawFinding[] {
   const findings: RawFinding[] = [];
 
   if (data.ttfbMs !== null && data.ttfbMs > TTFB_THRESHOLD_MS) {
     findings.push({
-      id: 'perf-slow-ttfb',
-      impact: 'serious',
+      id: "perf-slow-ttfb",
+      impact: "serious",
       help: `Slow time-to-first-byte (${data.ttfbMs} ms, target under ${TTFB_THRESHOLD_MS} ms)`,
-      description: 'A slow server response delays every other resource and paints on the page.',
+      description:
+        "A slow server response delays every other resource and paints on the page.",
       occurrences: 1,
     });
   }
 
-  if (data.domContentLoadedMs !== null && data.domContentLoadedMs > DOM_CONTENT_LOADED_THRESHOLD_MS) {
+  if (
+    data.domContentLoadedMs !== null &&
+    data.domContentLoadedMs > DOM_CONTENT_LOADED_THRESHOLD_MS
+  ) {
     findings.push({
-      id: 'perf-slow-dom-content-loaded',
-      impact: 'serious',
+      id: "perf-slow-dom-content-loaded",
+      impact: "serious",
       help: `Slow DOMContentLoaded (${data.domContentLoadedMs} ms, target under ${DOM_CONTENT_LOADED_THRESHOLD_MS} ms)`,
-      description: 'Visitors can\'t reliably interact with the page until the DOM is parsed and ready.',
+      description:
+        "Visitors can't reliably interact with the page until the DOM is parsed and ready.",
       occurrences: 1,
     });
   }
 
   if (data.loadTimeMs !== null && data.loadTimeMs > LOAD_TIME_THRESHOLD_MS) {
     findings.push({
-      id: 'perf-slow-load-time',
-      impact: 'critical',
+      id: "perf-slow-load-time",
+      impact: "critical",
       help: `Slow full page load (${data.loadTimeMs} ms, target under ${LOAD_TIME_THRESHOLD_MS} ms)`,
-      description: 'Every extra second of load time measurably increases visitor abandonment.',
+      description:
+        "Every extra second of load time measurably increases visitor abandonment.",
       occurrences: 1,
     });
   }
 
   if (data.totalTransferBytes > PAGE_WEIGHT_THRESHOLD_BYTES) {
     findings.push({
-      id: 'perf-large-page-weight',
-      impact: 'serious',
+      id: "perf-large-page-weight",
+      impact: "serious",
       help: `Heavy page weight (${formatBytes(data.totalTransferBytes)} transferred, target under ${formatBytes(PAGE_WEIGHT_THRESHOLD_BYTES)})`,
-      description: 'Large page weight disproportionately hurts visitors on mobile networks.',
+      description:
+        "Large page weight disproportionately hurts visitors on mobile networks.",
       occurrences: 1,
     });
   }
 
   if (data.requestCount > REQUEST_COUNT_THRESHOLD) {
     findings.push({
-      id: 'perf-too-many-requests',
-      impact: 'moderate',
+      id: "perf-too-many-requests",
+      impact: "moderate",
       help: `High request count (${data.requestCount} requests, target under ${REQUEST_COUNT_THRESHOLD})`,
-      description: 'Each additional request adds connection/latency overhead, especially on mobile.',
+      description:
+        "Each additional request adds connection/latency overhead, especially on mobile.",
       occurrences: 1,
     });
   }
 
   if (data.domNodeCount > DOM_NODE_COUNT_THRESHOLD) {
     findings.push({
-      id: 'perf-large-dom-size',
-      impact: 'moderate',
+      id: "perf-large-dom-size",
+      impact: "moderate",
       help: `Large DOM size (${data.domNodeCount} nodes, target under ${DOM_NODE_COUNT_THRESHOLD})`,
-      description: 'A large DOM slows down style/layout recalculation and JavaScript execution.',
+      description:
+        "A large DOM slows down style/layout recalculation and JavaScript execution.",
       occurrences: 1,
     });
   }
 
   if (data.renderBlockingScripts > 0) {
     findings.push({
-      id: 'perf-render-blocking-scripts',
-      impact: 'serious',
+      id: "perf-render-blocking-scripts",
+      impact: "serious",
       help: `${data.renderBlockingScripts} render-blocking script(s) in <head>`,
-      description: 'Scripts loaded without async/defer in <head> delay first paint of the page.',
+      description:
+        "Scripts loaded without async/defer in <head> delay first paint of the page.",
       occurrences: data.renderBlockingScripts,
     });
   }
 
   if (data.oversizedImages > 0) {
     findings.push({
-      id: 'perf-oversized-images',
-      impact: 'moderate',
+      id: "perf-oversized-images",
+      impact: "moderate",
       help: `${data.oversizedImages} image(s) served at more than 2x their displayed size`,
-      description: 'Oversized images waste bandwidth and slow down the load, especially on mobile.',
+      description:
+        "Oversized images waste bandwidth and slow down the load, especially on mobile.",
       occurrences: data.oversizedImages,
     });
   }

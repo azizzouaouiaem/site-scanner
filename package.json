@@ -1,26 +1,32 @@
 {
-  "name": "accessibility-reviewer",
-  "version": "1.0.0",
+  "name": "site-scanner",
+  "version": "2.0.0",
   "private": true,
-  "description": "Scanne une page web pour l'accessibilite (WCAG) via axe-core et envoie un rapport detaille par courriel (EN/FR). Deployable sur Vercel.",
+  "description": "Audits web bilingues, suivi hebdomadaire et rapports techniques PDF.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint src --max-warnings=0",
+    "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
-    "@sparticuz/chromium-min": "^141.0.0",
+    "@sparticuz/chromium-min": "152.0.0",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/functions": "^3.11.3",
     "@vercel/speed-insights": "^2.0.0",
     "axe-core": "^4.10.2",
     "next": "^15.1.6",
     "playwright-core": "^1.49.1",
+    "postgres": "^4.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "resend": "^4.0.1",
-    "zod": "^3.24.1"
+    "robots-parser": "^3.0.1",
+    "stripe": "^23.2.0",
+    "workflow": "^5.6.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -35,6 +41,6 @@
     "typescript": "^5.7.3"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13.0"
   }
 }

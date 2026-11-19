@@ -1,15 +1,18 @@
-import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
-import { Analytics } from '@vercel/analytics/next';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import './globals.css';
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'Accessibility Reviewer',
-  description: 'Scan any page for WCAG accessibility issues and get a detailed report by email.',
+  title: "Site Scanner — SEO, accessibilité et suivi web",
+  description:
+    "Audits de pages web, suivi hebdomadaire et recommandations techniques en PDF. SEO, accessibilité, performance et préparation technique IA.",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en">
       <body className="antialiased">

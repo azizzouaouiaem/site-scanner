@@ -9,3 +9,7 @@ node_modules/
 *.tsbuildinfo
 reports/**/*.pdf
 reports/**/*.tmp
+/.swc
+
+output/
+.workflow-data/

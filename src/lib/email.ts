@@ -1,32 +1,35 @@
-import { Resend } from 'resend';
-import { t } from './i18n';
-import { formatMinutes } from './scoring';
-import type { ScanReport } from './types';
+import { Resend } from "resend";
+import { t } from "./i18n";
+import { formatMinutes } from "./scoring";
+import type { ScanReport } from "./types";
 
 const IMPACT_COLORS: Record<string, string> = {
-  critical: '#ff3b3b',
-  serious: '#ff8a3b',
-  moderate: '#ffd23b',
-  minor: '#8a8f98',
+  critical: "#ff3b3b",
+  serious: "#ff8a3b",
+  moderate: "#ffd23b",
+  minor: "#8a8f98",
 };
 
 function escapeHtml(value: string): string {
   return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;');
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }
 
-function renderIssueRow(issue: ScanReport['issues'][number], language: ScanReport['language']): string {
+function renderIssueRow(
+  issue: ScanReport["issues"][number],
+  language: ScanReport["language"],
+): string {
   const strings = t(language);
-  const color = IMPACT_COLORS[issue.impact] ?? '#8a8f98';
+  const color = IMPACT_COLORS[issue.impact] ?? "#8a8f98";
   return `
     <tr>
       <td style="padding:12px 8px;border-bottom:1px solid #222;vertical-align:top;">
         <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:${color}22;color:${color};font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;">${strings.impact[issue.impact]}</span>
         <div style="color:#f5f5f7;font-size:14px;font-weight:600;margin-top:6px;">${escapeHtml(issue.help)}</div>
-        <div style="color:#9a9a9f;font-size:12px;margin-top:4px;">${strings.occurrences(issue.occurrences)} &middot; ${issue.wcagCriteria.join(', ') || '—'}</div>
+        <div style="color:#9a9a9f;font-size:12px;margin-top:4px;">${strings.occurrences(issue.occurrences)} &middot; ${issue.wcagCriteria.join(", ") || "—"}</div>
         <a href="${issue.helpUrl}" style="color:#5b9dff;font-size:12px;">${issue.helpUrl}</a>
       </td>
       <td style="padding:12px 8px;border-bottom:1px solid #222;text-align:right;white-space:nowrap;vertical-align:top;">
@@ -36,9 +39,15 @@ function renderIssueRow(issue: ScanReport['issues'][number], language: ScanRepor
     </tr>`;
 }
 
-export function renderReportEmailHtml(report: ScanReport, contactEmail: string, contactUrl: string): string {
+export function renderReportEmailHtml(
+  report: ScanReport,
+  contactEmail: string,
+  contactUrl: string,
+): string {
   const strings = t(report.language);
-  const rows = report.issues.map((issue) => renderIssueRow(issue, report.language)).join('');
+  const rows = report.issues
+    .map((issue) => renderIssueRow(issue, report.language))
+    .join("");
   const businessImpactRows = report.businessImpacts
     .map(
       (item, index) => `
@@ -47,7 +56,7 @@ export function renderReportEmailHtml(report: ScanReport, contactEmail: string, 
       <td style="padding:8px 8px;border-bottom:1px solid #222;vertical-align:top;color:#e4e4e7;font-size:13px;line-height:1.5;">${escapeHtml(item.statement)}</td>
     </tr>`,
     )
-    .join('');
+    .join("");
 
   return `<!doctype html>
 <html>
@@ -107,19 +116,20 @@ export async function sendReportEmail(params: {
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.RESEND_FROM_EMAIL;
-  const contactEmail = process.env.CONTACT_EMAIL ?? 'aziz.zouaoui.aem@gmail.com';
-  const contactUrl = process.env.CONTACT_URL ?? 'https://example.com/contact';
+  const contactEmail =
+    process.env.CONTACT_EMAIL ?? "aziz.zouaoui.aem@gmail.com";
+  const contactUrl = process.env.CONTACT_URL ?? "https://example.com/contact";
 
   if (!apiKey || !fromEmail) {
     // Local dev convenience: let the full scan flow be tested end-to-end
     // without a Resend account. Never falls back silently in production.
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== "production") {
       console.warn(
         `[dev] RESEND_API_KEY/RESEND_FROM_EMAIL not set — skipping real send. Would have emailed "${params.subject}" to ${params.toEmail}.`,
       );
       return;
     }
-    throw new Error('email_not_configured');
+    throw new Error("email_not_configured");
   }
 
   const resend = new Resend(apiKey);

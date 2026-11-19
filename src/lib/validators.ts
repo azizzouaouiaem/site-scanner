@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const scanRequestSchema = z.object({
   url: z
@@ -9,14 +9,14 @@ export const scanRequestSchema = z.object({
     .refine((value) => {
       try {
         const parsed = new URL(value);
-        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+        return parsed.protocol === "http:" || parsed.protocol === "https:";
       } catch {
         return false;
       }
-    }, 'invalid_url'),
+    }, "invalid_url"),
   email: z.string().trim().toLowerCase().email().max(320).optional(),
-  language: z.enum(['en', 'fr']),
-  scanType: z.enum(['accessibility', 'seo', 'performance', 'geo']),
+  language: z.enum(["en", "fr"]),
+  scanType: z.enum(["accessibility", "seo", "performance", "geo"]),
 });
 
 export type ScanRequestInput = z.infer<typeof scanRequestSchema>;

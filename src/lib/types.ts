@@ -1,8 +1,8 @@
-export type Language = 'en' | 'fr';
+export type Language = "en" | "fr";
 
-export type ScanType = 'accessibility' | 'seo' | 'performance' | 'geo';
+export type ScanType = "accessibility" | "seo" | "performance" | "geo";
 
-export type AxeImpact = 'minor' | 'moderate' | 'serious' | 'critical';
+export type AxeImpact = "minor" | "moderate" | "serious" | "critical";
 
 export interface RawAxeNode {
   html: string;
@@ -56,6 +56,8 @@ export interface BusinessImpact {
 }
 
 export interface ScanReport {
+  observations?: Record<string, unknown>;
+  methodologyVersion?: string;
   url: string;
   finalUrl: string;
   language: Language;
