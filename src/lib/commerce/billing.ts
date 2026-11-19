@@ -1,5 +1,7 @@
 import Stripe from "stripe";
 import { origin } from "./auth";
+import { cursorConfigured } from "./cursor";
+import { fallbackConfigured } from "./recommendations";
 export function stripe() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("payment_not_ready");
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -16,10 +18,7 @@ export function readiness(kind: "site" | "pdf") {
     process.env.STRIPE_WEBHOOK_SECRET &&
     process.env.RESEND_API_KEY &&
     process.env.RESEND_FROM_EMAIL &&
-    (kind !== "pdf" ||
-      (process.env.REPORT_LLM_API_KEY &&
-        process.env.REPORT_LLM_MODEL &&
-        process.env.REPORT_LLM_URL)),
+    (kind !== "pdf" || cursorConfigured() || fallbackConfigured()),
   );
 }
 export const products = {

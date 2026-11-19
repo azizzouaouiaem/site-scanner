@@ -28,13 +28,30 @@ Do not put them in chat, source control or NEXT_PUBLIC variables.
 | STRIPE_SECRET_KEY | Stripe server key; begin in test mode |
 | STRIPE_WEBHOOK_SECRET | Signing secret for the webhook below, matching test/live mode |
 | CRON_SECRET | Random server secret protecting the daily dispatcher |
-| REPORT_LLM_URL | HTTPS OpenAI-compatible chat-completions endpoint supplied by the chosen provider |
-| REPORT_LLM_API_KEY | Provider server API key (a Cursor editor subscription is not assumed compatible) |
+| CURSOR_API_KEY | Cursor Dashboard API key, stored as a Production Secret; preferred report provider |
+| CURSOR_MODEL | Optional ID from Cursor GET /v1/models; omit to use the account default (not the key's label) |
+| REPORT_LLM_URL | HTTPS OpenAI-compatible chat-completions endpoint for automatic fallback |
+| REPORT_LLM_API_KEY | Fallback provider server API key, separate from the Cursor key |
 | REPORT_LLM_MODEL | Model identifier supporting JSON-object output and max_completion_tokens |
 | PAYMENTS_ENABLED | Set to true **after** provider configuration and end-to-end test checkout/delivery |
 | CHROMIUM_PACK_URL | Optional matching @sparticuz/chromium-min Linux pack |
 
-The AI provider is configurable; no unsupported Cursor inference API is assumed.
+Reports first use Cursor's documented v1 Cloud Agents API with Basic authentication.
+One no-repository agent is launched per PDF attempt, without repo access, environment
+secrets, MCP servers or PR creation in the request. Its prompt asks for JSON in the final
+assistant reply and forbids tools or external actions. Cursor's agent runtime still has
+its own capabilities and account policies; this prompt is not a sandbox permission control.
+Only audit findings are sent; never email addresses, order IDs or payment data.
+The agent ID is deterministic per order attempt, so a retry recovers the existing run
+after a lost response instead of starting another charged agent. Workflow sleeps between
+status checks without holding a function open. After 10 minutes, an API failure, a failed
+run or invalid/incomplete JSON, the application attempts cancellation/archive and uses
+the existing REPORT_LLM_* provider in batches of six findings. Completed agents are also
+archived. Provider failure cannot fabricate a successful PDF or change its scores.
+If Cursor credentials are absent, the configured fallback is used directly. If both
+providers fail or the fallback is missing, the order fails and can be retried from the
+account without another payment. No findings means no AI request.
+See [Cursor v1 reference](https://cursor.com/docs/cloud-agent/api/endpoints).
 The customer purchases a report based on observed findings, not source-repository
 analysis or guaranteed exhaustive detection. AI never alters scores. Each output
 batch must include each supplied finding exactly once. Recommendations and evidence
@@ -123,8 +140,9 @@ limits and usage in Vercel before scaling; no hosting-plan upgrade is performed 
    account before taking real payments; the application itself does not add a tax rate.
 
 Provider credentials were not available during initial implementation; no real Stripe
-transaction, provider model call, production Supabase migration or scheduled paid run
-should be considered verified until these steps have succeeded.
+transaction, provider model call or scheduled paid run should be considered verified
+until these steps have succeeded. Production Supabase connection/schema initialization
+was verified separately on 2026-11-19 (7 scanner tables with RLS).
 
 Private service diagnostics: `/api/admin/services` requires the generated
 SERVICE_CHECK_TOKEN bearer secret and returns bounded status fields only.

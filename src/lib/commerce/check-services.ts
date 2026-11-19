@@ -3,6 +3,8 @@
 import { sql, schema } from "./store";
 import { stripe } from "./billing";
 import { origin } from "./auth";
+import { cursorConfigured, checkCursorAuth } from "./cursor";
+import { fallbackConfigured } from "./recommendations";
 export async function checkServices() {
   const result: Record<string, unknown> = {};
   const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
@@ -56,5 +58,12 @@ export async function checkServices() {
   result.aiEndpoint = process.env.REPORT_LLM_URL ? "configured" : "missing";
   result.aiKey = process.env.REPORT_LLM_API_KEY ? "configured" : "missing";
   result.aiModel = process.env.REPORT_LLM_MODEL ? "configured" : "missing";
+  result.cursorKey = cursorConfigured() ? "configured" : "missing";
+  result.cursor = await checkCursorAuth();
+  result.cursorModel = process.env.CURSOR_MODEL
+    ? "configured"
+    : "account_default";
+  result.aiPrimary = cursorConfigured() ? "cursor-agents" : "openai-compatible";
+  result.aiFallback = fallbackConfigured() ? "configured" : "missing";
   return result;
 }
