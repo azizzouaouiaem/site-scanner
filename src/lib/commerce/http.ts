@@ -1,6 +1,10 @@
 export function failure(error: unknown) {
-  const code = error instanceof Error ? error.message : "request_failed";
+  const dbCode = (error as {code?: string} | null)?.code;
+  const code = dbCode && ["QUERY_TIMEOUT", "QUEUE_TIMEOUT", "CONNECTION_DESTROYED", "CONNECT_TIMEOUT", "57014", "55P03"].includes(dbCode)
+    ? "service_unavailable"
+    : error instanceof Error ? error.message : "request_failed";
   const known: Record<string, number> = {
+    service_unavailable: 503,
     unauthorized: 401,
     forbidden: 403,
     rate_limited: 429,

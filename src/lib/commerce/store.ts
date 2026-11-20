@@ -12,6 +12,11 @@ export function sql() {
     max: 3,
     idle_timeout: 20,
     connect_timeout: 10,
+    // Bound stale sockets after a serverless instance resumes, and pool queues.
+    query_timeout: 15,
+    queue_timeout: 10,
+    cancel_timeout: 2,
+    max_lifetime: 60,
   }));
 }
 let ready: Promise<void> | undefined;
@@ -21,9 +26,20 @@ export function schema() {
     throw error;
   }));
 }
-async function init() {
-  await sql().begin(async (db) => {
+// The last index in this atomic migration is its durable completion marker.
+// Existing databases must not repeat ALTER TABLE/RLS locks on every cold start.
+export async function ensureCommerceSchema(db: ReturnType<typeof postgres>) {
+  const complete = async (connection: typeof db) => {
+    const rows = await connection`SELECT to_regclass('public.scanner_pending_site_order') IS NOT NULL AS ready`;
+    return rows[0]?.ready === true;
+  };
+  if (await complete(db)) return;
+  await db.begin(async (db) => {
+    await db`SET LOCAL lock_timeout = '5s'`;
+    await db`SET LOCAL statement_timeout = '15s'`;
+    await db`SET LOCAL idle_in_transaction_session_timeout = '15s'`;
     await db`SELECT pg_advisory_xact_lock(831941105)`;
+    if (await complete(db as unknown as ReturnType<typeof postgres>)) return;
     await db`CREATE TABLE IF NOT EXISTS scanner_users (id UUID PRIMARY KEY, email TEXT UNIQUE NOT NULL, stripe_customer TEXT UNIQUE, subscription_id TEXT UNIQUE, subscription_status TEXT NOT NULL DEFAULT 'none', created_at TIMESTAMPTZ NOT NULL DEFAULT now())`;
     await db`CREATE TABLE IF NOT EXISTS scanner_tokens (hash TEXT PRIMARY KEY, user_id UUID NOT NULL REFERENCES scanner_users(id), kind TEXT NOT NULL, expires_at TIMESTAMPTZ NOT NULL, used BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMPTZ NOT NULL DEFAULT now())`;
     await db`CREATE TABLE IF NOT EXISTS scanner_limits (key TEXT NOT NULL, bucket BIGINT NOT NULL, count INTEGER NOT NULL DEFAULT 1, PRIMARY KEY(key,bucket))`;
@@ -45,9 +61,11 @@ async function init() {
     }
     await db`CREATE INDEX IF NOT EXISTS scanner_tokens_user ON scanner_tokens(user_id)`;
     await db`CREATE UNIQUE INDEX IF NOT EXISTS scanner_pending_site_order ON scanner_orders(user_id) WHERE kind='site' AND status='pending'`;
-    await db`DELETE FROM scanner_tokens WHERE expires_at < now() - interval '1 day'`;
-    await db`DELETE FROM scanner_limits WHERE bucket < floor(extract(epoch from now()) / 900) - 192`;
+
   });
+}
+async function init() {
+  await ensureCommerceSchema(sql());
 }
 export interface User {
   id: string;

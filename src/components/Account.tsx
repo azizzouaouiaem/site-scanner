@@ -65,13 +65,15 @@ export default function Account({
         fetch(
           "/api/sites" +
             (selected ? "?cycle=" + encodeURIComponent(selected) : ""),
-          { cache: "no-store" },
+          { cache: "no-store", signal: AbortSignal.timeout(15_000) },
         ),
-        fetch("/api/orders", { cache: "no-store" }),
+        fetch("/api/orders", { cache: "no-store", signal: AbortSignal.timeout(15_000) }),
       ]);
       if (response.ok) setData(await response.json());
       else if (response.status === 401) setLogged(false);
+      else throw new Error("account_unavailable");
       if (ordersResponse.ok) setOrders((await ordersResponse.json()).orders);
+      else if (ordersResponse.status !== 401) throw new Error("orders_unavailable");
     } catch {
       setMessage(
         "Connexion interrompue, actualisez la page. / Connection interrupted; refresh this page.",
@@ -80,11 +82,22 @@ export default function Account({
   }, [selected]);
   useEffect(() => {
     if (!logged) return;
-    void refresh();
-    const timer = setInterval(() => void refresh(), 15000);
-    return () => clearInterval(timer);
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const poll = async () => {
+      await refresh();
+      if (!stopped) timer = setTimeout(() => void poll(), 15000);
+    };
+    void poll();
+    return () => { stopped = true; clearTimeout(timer); };
   }, [logged, refresh]);
   const errors: Record<string, string> = {
+    request_timeout: fr
+      ? "Le service met trop de temps à répondre. Actualisez l’espace client avant de réessayer ; aucun paiement n’est effectué sans validation sur Stripe."
+      : "The service took too long to respond. Refresh your account before retrying; no payment is made without confirmation on Stripe.",
+    service_unavailable: fr
+      ? "Connexion à la base temporairement indisponible. Réessayez dans quelques instants."
+      : "Database connection temporarily unavailable. Please retry shortly.",
     payment_not_ready: fr
       ? "Le paiement sera disponible après configuration du service. Aucun débit effectué."
       : "Payments will open after service configuration. No charge made.",
@@ -116,12 +129,15 @@ export default function Account({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(45_000),
       });
       const value = await r.json();
       if (!r.ok) throw new Error(value.error ?? "request_failed");
       done?.(value);
     } catch (e) {
-      const code = e instanceof Error ? e.message : "";
+      const code = e instanceof Error && ["TimeoutError", "AbortError"].includes(e.name)
+        ? "request_timeout"
+        : e instanceof Error ? e.message : "";
       setMessage(
         errors[code] ??
           (fr

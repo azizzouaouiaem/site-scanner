@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { schema, sql, limit } from "../src/lib/commerce/store";
+import postgres from "postgres";
+import { schema, sql, limit, ensureCommerceSchema } from "../src/lib/commerce/store";
 const configured = !!process.env.TEST_DATABASE_URL;
 if (configured) {
   if (!process.env.TEST_DATABASE_URL!.includes("scanner_test_"))
@@ -14,6 +15,18 @@ test(
   async () => {
     await schema();
     const db = sql();
+    const fresh = postgres(process.env.TEST_DATABASE_URL!, { prepare: false, query_timeout: 2, onnotice: () => {} });
+    try {
+      await db.begin(async (transaction) => {
+        await transaction`SELECT pg_advisory_xact_lock(831941105)`;
+        await transaction`LOCK TABLE scanner_users IN ACCESS SHARE MODE`;
+        // A fresh function instance must read the committed schema marker,
+        // without waiting for migration or ALTER TABLE locks.
+        await ensureCommerceSchema(fresh);
+      });
+    } finally { await fresh.end(); }
+    await assert.rejects(db`SELECT pg_sleep(20)`, (e: unknown) => (e as {code?: string}).code === "QUERY_TIMEOUT");
+    assert.equal((await db`SELECT 1 AS recovered`)[0]?.recovered, 1);
     const id = randomUUID();
     try {
       await db`INSERT INTO scanner_users(id,email) VALUES (${id},${id + "@example.test"})`;

@@ -14,6 +14,8 @@ export async function GET(request: Request) {
   if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL)
     return Response.json({ skipped: "database_not_configured" });
   await schema();
+  await sql()`DELETE FROM scanner_tokens WHERE expires_at < now() - interval '1 day'`;
+  await sql()`DELETE FROM scanner_limits WHERE bucket < floor(extract(epoch from now()) / 900) - 192`;
   const sites =
     await sql()`SELECT s.id FROM scanner_sites s JOIN scanner_users u ON u.id=s.user_id WHERE s.next_run<=now() AND u.subscription_status IN ('active','trialing') ORDER BY s.next_run LIMIT 100`;
   const orders =

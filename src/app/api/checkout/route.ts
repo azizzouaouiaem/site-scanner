@@ -5,6 +5,7 @@ import { sql, active, limit } from "@/lib/commerce/store";
 import { products, stripe, readiness, returnUrl } from "@/lib/commerce/billing";
 import { failure } from "@/lib/commerce/http";
 import { assertPublicHttpUrl } from "@/lib/ssrf-guard";
+export const maxDuration = 60;
 export async function POST(request: Request) {
   try {
     sameOrigin(request);
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
         success_url: returnUrl() + "?paid=1",
         cancel_url: returnUrl() + "?cancelled=1",
       },
-      { idempotencyKey: "checkout:" + id },
+      { idempotencyKey: "checkout:" + id, timeout: 10_000, maxNetworkRetries: 0 },
     );
     await sql()`UPDATE scanner_orders SET stripe_session=${checkout.id} WHERE id=${id}`;
     return Response.json({ url: checkout.url });
