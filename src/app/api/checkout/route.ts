@@ -7,6 +7,7 @@ import { failure } from "@/lib/commerce/http";
 import { assertPublicHttpUrl } from "@/lib/ssrf-guard";
 export const maxDuration = 60;
 export async function POST(request: Request) {
+  let stage = "authentication";
   try {
     sameOrigin(request);
     const u = await requireUser();
@@ -21,8 +22,11 @@ export async function POST(request: Request) {
     const { kind, language } = parsed.data;
     if (!readiness(kind)) throw new Error("payment_not_ready");
     if (kind === "site" && active(u)) throw new Error("already_subscribed");
+    stage = "rate_limit";
     await limit("checkout:" + u.id, 5);
+    stage = "url_validation";
     const url = (await assertPublicHttpUrl(parsed.data.url)).toString();
+    stage = "pending_order";
     const api = stripe();
     if (kind === "site") {
       const pending =
@@ -44,9 +48,11 @@ export async function POST(request: Request) {
         await sql()`UPDATE scanner_orders SET status='expired' WHERE user_id=${u.id} AND kind='site' AND status='pending'`;
       }
     }
+    stage = "order_insert";
     const id = randomUUID();
     await sql()`INSERT INTO scanner_orders(id,user_id,kind,url,language) VALUES (${id},${u.id},${kind},${url},${language})`;
     const product = products[kind];
+    stage = "stripe_create";
     const checkout = await api.checkout.sessions.create(
       {
         mode: kind === "site" ? "subscription" : "payment",
@@ -77,9 +83,13 @@ export async function POST(request: Request) {
       },
       { idempotencyKey: "checkout:" + id, timeout: 10_000, maxNetworkRetries: 0 },
     );
+    stage = "order_save";
     await sql()`UPDATE scanner_orders SET stripe_session=${checkout.id} WHERE id=${id}`;
     return Response.json({ url: checkout.url });
   } catch (e) {
+    const fields = e as { type?: string; code?: string; param?: string };
+    const safe = (value: unknown) => typeof value === "string" && /^[a-zA-Z0-9_.\[\]-]{1,100}$/.test(value) ? value : undefined;
+    console.error("checkout_failed", {stage, type: safe(fields?.type), code: safe(fields?.code), param: safe(fields?.param)});
     return failure(e);
   }
 }
