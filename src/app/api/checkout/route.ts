@@ -89,7 +89,12 @@ export async function POST(request: Request) {
   } catch (e) {
     const fields = e as { type?: string; code?: string; param?: string };
     const safe = (value: unknown) => typeof value === "string" && /^[a-zA-Z0-9_.\[\]-]{1,100}$/.test(value) ? value : undefined;
-    console.error("checkout_failed", {stage, type: safe(fields?.type), code: safe(fields?.code), param: safe(fields?.param)});
+    console.error("checkout_failed", {stage, type: safe(fields?.type), code: safe(fields?.code), param: safe(fields?.param),
+      // Provider text is limited and strips credentials, emails, URLs and IDs.
+      detail: fields?.type === "StripeInvalidRequestError" && e instanceof Error
+        ? e.message.replace(/https?:\/\/\S+|[\w.+-]+@[\w.-]+|[a-zA-Z0-9_-]{20,}/g, "[redacted]").slice(0, 400)
+        : undefined,
+    });
     return failure(e);
   }
 }
