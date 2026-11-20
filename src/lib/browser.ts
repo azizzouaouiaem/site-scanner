@@ -109,8 +109,8 @@ export function isAiCrawlerBlocked(robotsTxt: string, url: string): boolean {
   );
 }
 
-export class ScanTimeoutError extends Error {}
-export class ScanNavigationError extends Error {}
+export { ScanTimeoutError, ScanNavigationError, ScanAccessDeniedError } from "./navigation";
+import { ScanTimeoutError, openAuditPage } from "./navigation";
 
 export async function launchAndNavigate(
   url: URL,
@@ -148,32 +148,9 @@ export async function launchAndNavigate(
     });
     const page = await context.newPage();
 
-    try {
-      await assertPublicHttpUrl(url.toString());
-      const response = await page.goto(url.toString(), {
-        waitUntil: "load",
-        timeout: NAVIGATION_TIMEOUT_MS,
-      });
-      if (!response || response.status() >= 400) throw new Error("http_error");
-      robotsHeaders.set(page, response.headers()["x-robots-tag"] ?? "");
-      if (
-        /just a moment|access denied|verify you are human/i.test(
-          await page.title(),
-        )
-      )
-        throw new Error("challenge_page");
-    } catch (error) {
-      throw new ScanNavigationError(
-        error instanceof Error ? error.message : "navigation_failed",
-      );
-    }
-
-    // Many client-rendered / cookie-consent-gated sites still populate
-    // <title>, lang and real content shortly after the `load` event. Give
-    // them a short, bounded grace period before running audits.
-    await page
-      .waitForLoadState("networkidle", { timeout: 5_000 })
-      .catch(() => {});
+    await assertPublicHttpUrl(url.toString());
+    const response = await openAuditPage(page, url.toString());
+    robotsHeaders.set(page, response.headers()["x-robots-tag"] ?? "");
 
     return { browser, page };
   } catch (error) {
@@ -224,7 +201,7 @@ export async function scanUrlForAccessibility(
     };
     const screenshot = shared
       ? Buffer.from("")
-      : await page.screenshot({ type: "jpeg", quality: 70, fullPage: false });
+      : await page.screenshot({ type: "jpeg", quality: 70, fullPage: false, timeout: 5_000 }).catch(() => Buffer.from(""));
 
     return {
       finalUrl: page.url(),
@@ -232,7 +209,7 @@ export async function scanUrlForAccessibility(
       violations: results.violations,
       passedRuleCount: results.passes.length,
       incompleteRuleCount: results.incomplete.length,
-      screenshotDataUrl: `data:image/jpeg;base64,${screenshot.toString("base64")}`,
+      screenshotDataUrl: screenshot.length ? `data:image/jpeg;base64,${screenshot.toString("base64")}` : "",
     };
   } finally {
     if (!shared) await browser.close();
@@ -286,10 +263,10 @@ export async function scanUrlForSeo(
     data.robotsMeta += "," + (robotsHeaders.get(page) ?? "");
     const screenshot = shared
       ? Buffer.from("")
-      : await page.screenshot({ type: "jpeg", quality: 70, fullPage: false });
+      : await page.screenshot({ type: "jpeg", quality: 70, fullPage: false, timeout: 5_000 }).catch(() => Buffer.from(""));
     return {
       finalUrl: page.url(),
-      screenshotDataUrl: `data:image/jpeg;base64,${screenshot.toString("base64")}`,
+      screenshotDataUrl: screenshot.length ? `data:image/jpeg;base64,${screenshot.toString("base64")}` : "",
       ...data,
     };
   } finally {
@@ -329,7 +306,9 @@ export async function scanUrlForPerformance(
         domContentLoadedMs: nav
           ? Math.round(nav.domContentLoadedEventEnd - nav.startTime)
           : null,
-        loadTimeMs: nav ? Math.round(nav.loadEventEnd - nav.startTime) : null,
+        loadTimeMs: nav && nav.loadEventEnd > 0
+          ? Math.round(nav.loadEventEnd - nav.startTime)
+          : null,
         requestCount: resources.length,
         totalTransferBytes: Math.round(totalTransferBytes),
         domNodeCount: document.getElementsByTagName("*").length,
@@ -340,12 +319,15 @@ export async function scanUrlForPerformance(
       };
     });
 
+    // A missing load event is not a zero-duration (passing) measurement.
+    if (data.loadTimeMs === null) throw new ScanTimeoutError("load_measurement_incomplete");
+
     const screenshot = shared
       ? Buffer.from("")
-      : await page.screenshot({ type: "jpeg", quality: 70, fullPage: false });
+      : await page.screenshot({ type: "jpeg", quality: 70, fullPage: false, timeout: 5_000 }).catch(() => Buffer.from(""));
     return {
       finalUrl: page.url(),
-      screenshotDataUrl: `data:image/jpeg;base64,${screenshot.toString("base64")}`,
+      screenshotDataUrl: screenshot.length ? `data:image/jpeg;base64,${screenshot.toString("base64")}` : "",
       ...data,
     };
   } finally {
@@ -412,11 +394,11 @@ export async function scanUrlForGeo(
 
     const screenshot = shared
       ? Buffer.from("")
-      : await page.screenshot({ type: "jpeg", quality: 70, fullPage: false });
+      : await page.screenshot({ type: "jpeg", quality: 70, fullPage: false, timeout: 5_000 }).catch(() => Buffer.from(""));
 
     return {
       finalUrl: page.url(),
-      screenshotDataUrl: `data:image/jpeg;base64,${screenshot.toString("base64")}`,
+      screenshotDataUrl: screenshot.length ? `data:image/jpeg;base64,${screenshot.toString("base64")}` : "",
       aiCrawlersBlocked: isAiCrawlerBlocked(robotsTxt, page.url()),
       hasLlmsTxt,
       ...data,

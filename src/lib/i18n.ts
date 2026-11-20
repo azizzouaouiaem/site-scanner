@@ -51,6 +51,8 @@ export const translations = {
     errorBlockedUrl: "This URL can't be scanned (private/internal address).",
     errorRateLimited:
       "Too many scans from this email recently. Please try again later.",
+    errorAccessDenied: "This site refused the automated scan or requires human verification. Try another public page. No score was calculated.",
+    errorNavigation: "The page could not be opened by the scanner. Check the URL or try another public page.",
     errorTimeout: "The page took too long to load. Please try again.",
     errorEmailNotConfigured:
       "Email delivery is not configured on this deployment. Add RESEND_API_KEY and RESEND_FROM_EMAIL in Vercel, then redeploy.",
@@ -115,6 +117,8 @@ export const translations = {
       "Cette URL ne peut pas être analysée (adresse privée/interne).",
     errorRateLimited:
       "Trop de demandes récentes pour ce courriel. Veuillez réessayer plus tard.",
+    errorAccessDenied: "Ce site refuse l’analyse automatisée ou demande une vérification humaine. Essayez une autre page publique. Aucun score n’a été calculé.",
+    errorNavigation: "Le scanner n’a pas pu ouvrir cette page. Vérifiez l’URL ou essayez une autre page publique.",
     errorTimeout: "La page a pris trop de temps à charger. Veuillez réessayer.",
     errorEmailNotConfigured:
       "L’envoi de courriels n’est pas configuré sur ce déploiement. Ajoutez RESEND_API_KEY et RESEND_FROM_EMAIL dans Vercel, puis redéployez.",

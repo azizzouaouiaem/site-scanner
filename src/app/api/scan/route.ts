@@ -8,7 +8,7 @@ import { sendReportEmail } from "@/lib/email";
 import { buildScanReport } from "@/lib/report";
 import { renderScanReportHtml } from "@/lib/report-html";
 import { assertPublicHttpUrl, UnsafeUrlError } from "@/lib/ssrf-guard";
-import { ScanNavigationError, ScanTimeoutError } from "@/lib/browser";
+import { ScanAccessDeniedError, ScanNavigationError, ScanTimeoutError } from "@/lib/browser";
 import { scanRequestSchema } from "@/lib/validators";
 
 export const runtime = "nodejs";
@@ -125,10 +125,13 @@ export async function POST(request: Request) {
       reportHtml: renderScanReportHtml(report),
     });
   } catch (error) {
-    if (
-      error instanceof ScanTimeoutError ||
-      error instanceof ScanNavigationError
-    ) {
+    if (error instanceof ScanAccessDeniedError) {
+      return NextResponse.json({ error: "scan_access_denied" }, { status: 422 });
+    }
+    if (error instanceof ScanNavigationError) {
+      return NextResponse.json({ error: "scan_navigation_failed" }, { status: 422 });
+    }
+    if (error instanceof ScanTimeoutError) {
       return NextResponse.json({ error: "scan_timeout" }, { status: 504 });
     }
     if (error instanceof Error && error.message === "email_not_configured") {

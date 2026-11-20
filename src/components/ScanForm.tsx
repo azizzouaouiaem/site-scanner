@@ -18,6 +18,8 @@ const ERROR_KEY_BY_CODE: Record<string, keyof ReturnType<typeof t>> = {
   blocked_url: "errorBlockedUrl",
   rate_limited: "errorRateLimited",
   scan_timeout: "errorTimeout",
+  scan_access_denied: "errorAccessDenied",
+  scan_navigation_failed: "errorNavigation",
   email_not_configured: "errorEmailNotConfigured",
 };
 
