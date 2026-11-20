@@ -56,6 +56,10 @@ export async function POST(request: Request) {
     const checkout = await api.checkout.sessions.create(
       {
         mode: kind === "site" ? "subscription" : "payment",
+        // Use standard Checkout; this account enables Managed Payments by
+        // default, which rejects our explicit card-only purchase settings.
+        managed_payments: { enabled: false },
+        locale: language,
         customer: u.stripe_customer ?? undefined,
         customer_email: u.stripe_customer ? undefined : u.email,
         customer_creation:
