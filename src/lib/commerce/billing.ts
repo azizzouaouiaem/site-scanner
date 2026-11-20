@@ -9,9 +9,11 @@ export function stripe() {
     maxNetworkRetries: 1,
   });
 }
+export const testPayments = () => /^(sk|rk)_test_/.test(process.env.STRIPE_SECRET_KEY ?? "");
 export function readiness(kind: "site" | "pdf") {
   return Boolean(
     process.env.PAYMENTS_ENABLED === "true" &&
+    (process.env.PAYMENTS_TEST_ONLY !== "true" || testPayments()) &&
     process.env.CRON_SECRET &&
     (process.env.DATABASE_URL || process.env.POSTGRES_URL) &&
     process.env.STRIPE_SECRET_KEY &&

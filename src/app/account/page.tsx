@@ -1,6 +1,6 @@
 import Account from "@/components/Account";
 import { user } from "@/lib/commerce/auth";
-import { readiness } from "@/lib/commerce/billing";
+import { readiness, testPayments } from "@/lib/commerce/billing";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Mon espace — Site Scanner",
@@ -12,6 +12,7 @@ export default async function AccountPage() {
   return (
     <Account
       authenticated={!!current}
+      testMode={testPayments()}
       siteReady={readiness("site")}
       pdfReady={readiness("pdf")}
     />

@@ -207,6 +207,13 @@ test("Copilot alone can satisfy PDF provider readiness while payments remain exp
     COPILOT_GITHUB_TOKEN: "fixture",
   };
   assert(readiness("pdf"));
+  process.env.PAYMENTS_TEST_ONLY = "true";
+  process.env.STRIPE_SECRET_KEY = "sk_live_fixture";
+  assert.equal(readiness("pdf"), false);
+  assert.equal(readiness("site"), false);
+  process.env.STRIPE_SECRET_KEY = "sk_test_fixture";
+  assert(readiness("pdf"));
+  assert(readiness("site"));
   process.env.PAYMENTS_ENABLED = "false";
   assert.equal(readiness("pdf"), false);
 });

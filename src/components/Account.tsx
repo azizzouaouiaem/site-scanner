@@ -24,10 +24,12 @@ type Data = {
 };
 export default function Account({
   authenticated,
+  testMode,
   siteReady,
   pdfReady,
 }: {
   authenticated: boolean;
+  testMode: boolean;
   siteReady: boolean;
   pdfReady: boolean;
 }) {
@@ -143,6 +145,13 @@ export default function Account({
       <h1 className="mt-10 text-3xl font-bold">
         {fr ? "Mon espace Site Scanner" : "My Site Scanner account"}
       </h1>
+      {testMode && (
+        <aside className="mt-5 rounded-xl border border-amber-300/40 bg-amber-300/10 p-4 text-sm">
+          {fr
+            ? "Démo Stripe : aucun débit réel. Utilisez la carte 4242 4242 4242 4242, une date future et un CVC à 3 chiffres. Le PDF et les analyses sont réellement produits."
+            : "Stripe demo: no real charge. Use card 4242 4242 4242 4242, a future expiry and any 3-digit CVC. PDF reports and scans are actually generated."}
+        </aside>
+      )}
       {message && (
         <p role="status" className="mt-5 rounded-xl border border-white/25 p-4">
           {message}
@@ -312,8 +321,8 @@ export default function Account({
               >
                 {!(kind === "site" ? siteReady : pdfReady)
                   ? fr
-                    ? "Bientôt disponible — configuration en cours"
-                    : "Coming soon — setup in progress"
+                    ? "Paiement temporairement indisponible"
+                    : "Payment temporarily unavailable"
                   : busy
                     ? "…"
                     : fr

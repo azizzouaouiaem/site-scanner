@@ -1,12 +1,16 @@
 // Run with `vercel env run -e production --project site-scanner -- ...`.
 // Only bounded status fields are printed. Secrets and connection URIs stay in memory.
 import { sql, schema } from "./store";
-import { stripe } from "./billing";
+import { stripe, readiness, testPayments } from "./billing";
 import { origin } from "./auth";
 import { cursorConfigured, checkCursorAuth } from "./cursor";
 import { fallbackConfigured, copilotConfigured } from "./ai-config";
 export async function checkServices() {
-  const result: Record<string, unknown> = {};
+  const result: Record<string, unknown> = {
+    siteReady: readiness("site"), pdfReady: readiness("pdf"),
+    paymentsEnabled: process.env.PAYMENTS_ENABLED === "true",
+    testOnly: process.env.PAYMENTS_TEST_ONLY === "true",
+  };
   const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
   if (!url) result.database = "missing";
   else {
@@ -39,7 +43,7 @@ export async function checkServices() {
       );
       result.webhookEndpoint = endpoint ? "configured" : "missing";
       if (endpoint) result.webhookEvents = endpoint.enabled_events;
-      result.stripeMode = process.env.STRIPE_SECRET_KEY.includes("_test_")
+      result.stripeMode = testPayments()
         ? "test"
         : "live";
     } catch (error) {
